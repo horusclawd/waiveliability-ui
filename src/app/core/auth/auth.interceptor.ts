@@ -15,9 +15,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     catchError((err: HttpErrorResponse) => {
       if (err.status === 401) {
         return auth.refreshToken().pipe(
-          switchMap((newToken) => {
+          switchMap(() => {
             const retryReq = req.clone({
-              setHeaders: { Authorization: `Bearer ${newToken}` },
+              setHeaders: { Authorization: `Bearer ${auth.token()}` },
             });
             return next(retryReq);
           }),

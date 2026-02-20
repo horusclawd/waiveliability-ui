@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  APP_INITIALIZER,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
@@ -12,13 +13,26 @@ import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { mockInterceptor } from './core/mock/mock.interceptor';
+import { AuthService } from './core/auth/auth.service';
+import { environment } from '../environments/environment';
+
+function initAuth(auth: AuthService) {
+  return () => auth.loadCurrentUser();
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(
+      withInterceptors(
+        environment.mock
+          ? [mockInterceptor, authInterceptor]
+          : [authInterceptor]
+      )
+    ),
     provideAnimationsAsync(),
     MessageService,
     providePrimeNG({
@@ -34,5 +48,11 @@ export const appConfig: ApplicationConfig = {
       },
       ripple: true,
     }),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initAuth,
+      deps: [AuthService],
+      multi: true,
+    },
   ],
 };
