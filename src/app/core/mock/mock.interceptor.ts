@@ -289,6 +289,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // GET /admin/forms  (list)
   if (method === 'GET' && isFormsBase && /\/admin\/forms(\?.*)?$/.test(url)) {
+    if (!mockSession) return unauthorized();
     const page: PageResponse<FormSummary> = {
       content: [...mockForms],
       page: 0,
@@ -303,6 +304,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // POST /admin/forms  (create)
   if (method === 'POST' && isFormsBase && /\/admin\/forms$/.test(url)) {
+    if (!mockSession) return unauthorized();
     const body = req.body as { name: string; description?: string | null };
     const now = nowIso();
     const newId = `form-${Date.now()}`;
@@ -331,6 +333,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // POST /admin/forms/{id}/publish
   if (method === 'POST' && isFormsBase && /\/admin\/forms\/[^/]+\/publish$/.test(url)) {
+    if (!mockSession) return unauthorized();
     const id = url.split('/admin/forms/')[1].replace('/publish', '');
     const form = mockFormDetails.get(id);
     if (!form) return respond(null, 404);
@@ -342,6 +345,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // POST /admin/forms/{id}/unpublish
   if (method === 'POST' && isFormsBase && /\/admin\/forms\/[^/]+\/unpublish$/.test(url)) {
+    if (!mockSession) return unauthorized();
     const id = url.split('/admin/forms/')[1].replace('/unpublish', '');
     const form = mockFormDetails.get(id);
     if (!form) return respond(null, 404);
@@ -353,6 +357,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // GET /admin/forms/{id}
   if (method === 'GET' && isFormsBase && /\/admin\/forms\/[^/?]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
     const id = url.split('/admin/forms/')[1].split('?')[0];
     const form = mockFormDetails.get(id);
     if (!form) return respond(null, 404);
@@ -361,6 +366,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // PUT /admin/forms/{id}
   if (method === 'PUT' && isFormsBase && /\/admin\/forms\/[^/]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
     const id = url.split('/admin/forms/')[1];
     const existing = mockFormDetails.get(id);
     if (!existing) return respond(null, 404);
@@ -384,6 +390,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // DELETE /admin/forms/{id}
   if (method === 'DELETE' && isFormsBase && /\/admin\/forms\/[^/]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
     const id = url.split('/admin/forms/')[1];
     mockForms = mockForms.filter((f) => f.id !== id);
     mockFormDetails.delete(id);

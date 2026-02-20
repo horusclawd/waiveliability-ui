@@ -13,6 +13,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { FormService } from '../form.service';
@@ -34,6 +35,7 @@ import { FormSummary } from '../form.model';
     ConfirmDialogModule,
     ToolbarModule,
     ProgressSpinnerModule,
+    TooltipModule,
   ],
   providers: [MessageService, ConfirmationService],
   template: `

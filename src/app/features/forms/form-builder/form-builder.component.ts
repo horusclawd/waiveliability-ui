@@ -21,8 +21,6 @@ import { TextareaModule } from 'primeng/textarea';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { BadgeModule } from 'primeng/badge';
-import { SelectModule } from 'primeng/select';
 import { CardModule } from 'primeng/card';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -64,8 +62,6 @@ function generateId(): string {
     ToastModule,
     TagModule,
     ToggleSwitchModule,
-    BadgeModule,
-    SelectModule,
     CardModule,
     ToolbarModule,
     ProgressSpinnerModule,
@@ -154,7 +150,8 @@ function generateId(): string {
           @if (isEditingName()) {
             <input
               pInputText
-              [(ngModel)]="formNameValue"
+              [ngModel]="formNameValue()"
+              (ngModelChange)="formNameValue.set($event)"
               (blur)="isEditingName.set(false)"
               (keydown.enter)="isEditingName.set(false)"
               (keydown.escape)="isEditingName.set(false)"
@@ -166,7 +163,7 @@ function generateId(): string {
               class="text-xl font-semibold cursor-pointer"
               (click)="isEditingName.set(true)"
               title="Click to edit form name"
-            >{{ formNameValue || 'Untitled Form' }}</span>
+            >{{ formNameValue() || 'Untitled Form' }}</span>
           }
         </ng-template>
         <ng-template #end>
@@ -230,7 +227,8 @@ function generateId(): string {
                     <label class="font-medium text-sm">Form Description <span class="text-color-secondary">(optional)</span></label>
                     <textarea
                       pTextarea
-                      [(ngModel)]="formDescriptionValue"
+                      [ngModel]="formDescriptionValue()"
+                      (ngModelChange)="formDescriptionValue.set($event)"
                       placeholder="Add a brief description…"
                       rows="2"
                       style="resize: none; width: 100%"
@@ -420,8 +418,8 @@ export class FormBuilderComponent implements OnInit {
   formId = signal<string | null>(null);
 
   // Local editable state
-  formNameValue = '';
-  formDescriptionValue = '';
+  formNameValue = signal('');
+  formDescriptionValue = signal('');
   fields = signal<FormField[]>([]);
   selectedField = signal<FormField | null>(null);
 
@@ -438,12 +436,12 @@ export class FormBuilderComponent implements OnInit {
     const remote = this.currentForm();
     if (!remote && this.formId() === null) {
       // new form: dirty if any content
-      return this.formNameValue.trim().length > 0 || this.fields().length > 0;
+      return this.formNameValue().trim().length > 0 || this.fields().length > 0;
     }
     if (!remote) return false;
     return (
-      this.formNameValue !== remote.name ||
-      (this.formDescriptionValue || null) !== remote.description ||
+      this.formNameValue() !== remote.name ||
+      (this.formDescriptionValue() || null) !== remote.description ||
       JSON.stringify(this.fields()) !== JSON.stringify(remote.fields)
     );
   });
@@ -455,8 +453,8 @@ export class FormBuilderComponent implements OnInit {
       this.loading.set(true);
       this.formService.getForm(id).subscribe({
         next: (form) => {
-          this.formNameValue = form.name;
-          this.formDescriptionValue = form.description ?? '';
+          this.formNameValue.set(form.name);
+          this.formDescriptionValue.set(form.description ?? '');
           this.fields.set(form.fields.slice().sort((a, b) => a.fieldOrder - b.fieldOrder));
           this.loading.set(false);
         },
@@ -558,14 +556,14 @@ export class FormBuilderComponent implements OnInit {
   }
 
   save() {
-    const name = this.formNameValue.trim();
+    const name = this.formNameValue().trim();
     if (!name) {
       this.messageService.add({ severity: 'warn', summary: 'Validation', detail: 'Form name is required.' });
       this.isEditingName.set(true);
       return;
     }
 
-    const description = this.formDescriptionValue.trim() || null;
+    const description = this.formDescriptionValue().trim() || null;
     const currentId = this.formId();
 
     this.saving.set(true);
@@ -575,8 +573,8 @@ export class FormBuilderComponent implements OnInit {
         next: (form) => {
           this.saving.set(false);
           // Re-sync local state from server response
-          this.formNameValue = form.name;
-          this.formDescriptionValue = form.description ?? '';
+          this.formNameValue.set(form.name);
+          this.formDescriptionValue.set(form.description ?? '');
           this.fields.set(form.fields.slice().sort((a, b) => a.fieldOrder - b.fieldOrder));
           this.messageService.add({ severity: 'success', summary: 'Saved', detail: 'Form saved successfully.' });
         },
