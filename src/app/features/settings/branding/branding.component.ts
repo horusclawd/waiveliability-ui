@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit, effect } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -8,7 +8,6 @@ import { SelectModule } from 'primeng/select';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { FileUploadModule, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { ToastModule } from 'primeng/toast';
-import { DividerModule } from 'primeng/divider';
 import { MessageService } from 'primeng/api';
 import { TenantService } from '../../../core/tenant/tenant.service';
 import { PlanGateDirective } from '../../../core/directives/plan-gate.directive';
@@ -31,7 +30,6 @@ interface FontOption {
     ToggleSwitchModule,
     FileUploadModule,
     ToastModule,
-    DividerModule,
     PlanGateDirective,
   ],
   providers: [MessageService],
@@ -74,11 +72,11 @@ interface FontOption {
           <div class="flex flex-column gap-2">
             <label class="font-medium">Upload Logo</label>
             <p class="text-color-secondary text-sm m-0">
-              Accepted formats: PNG, JPG, SVG. Max size: 5 MB.
+              Accepted formats: PNG, JPG, WebP. Max size: 5 MB.
             </p>
             <p-fileupload
               mode="basic"
-              accept="image/*"
+              accept=".jpg,.jpeg,.png,.webp"
               [maxFileSize]="5000000"
               chooseLabel="Choose Logo"
               chooseIcon="pi pi-upload"

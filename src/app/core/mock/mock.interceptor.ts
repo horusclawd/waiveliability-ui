@@ -11,18 +11,6 @@ const MOCK_USER = {
   tenantId: 'tenant-001',
 };
 
-const MOCK_TENANT = {
-  id: 'tenant-001',
-  name: 'Demo Business',
-  slug: 'demo-business',
-  plan: 'free',
-  address: null,
-  phone: null,
-  websiteUrl: null,
-  createdAt: '2026-01-01T00:00:00Z',
-  updatedAt: '2026-01-01T00:00:00Z',
-};
-
 // In-memory mutable business state (mirrors BusinessResponse shape)
 let mockBusiness = {
   id: 'tenant-001',
@@ -125,7 +113,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
   // POST /auth/logout
   if (method === 'POST' && url.endsWith('/auth/logout')) {
     mockSession = null;
-    return respond({}, 204);
+    return respond(null, 204);
   }
 
   // GET /admin/me
