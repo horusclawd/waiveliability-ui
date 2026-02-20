@@ -1,7 +1,7 @@
 # WaiveLiability UI — Claude Instructions
 
 ## Project
-Angular 21 frontend for WaiveLiability. See the full architecture and roadmap in the sibling docs repo:
+Angular 21 frontend for WaiveLiability. At the start of every session, before doing any work, read both of these files:
 - `/Users/jon/Development/waiveliability/waiveliability/ARCHITECTURE.md`
 - `/Users/jon/Development/waiveliability/waiveliability/ROADMAP.md`
 
@@ -11,8 +11,11 @@ Angular 21 frontend for WaiveLiability. See the full architecture and roadmap in
 - Commit regularly with clear, descriptive messages as work progresses
 - At the end of each sprint:
   1. Stage and commit all remaining changes with an appropriate summary commit message
-  2. Push the branch to origin
-  3. Open a PR against `main` with a title and description summarizing what was completed in the sprint
+  2. **Push the branch to origin** (`git push -u origin <branch-name>`) — this step is required, do not skip it
+  3. **Open a PR against `main`** using the `gh` CLI with a detailed description including:
+     - A summary of what was built this sprint
+     - Bullet points for each major piece of work completed
+     - Any notes, deviations from the architecture, or follow-up items
   4. Do not merge — leave the PR for the owner to review and approve
 
 ## Tech Stack
