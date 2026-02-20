@@ -23,6 +23,26 @@ const MOCK_TENANT = {
   updatedAt: '2026-01-01T00:00:00Z',
 };
 
+// In-memory mutable business state (mirrors BusinessResponse shape)
+let mockBusiness = {
+  id: 'tenant-001',
+  name: 'Demo Business',
+  slug: 'demo-business',
+  plan: 'free' as 'free' | 'basic' | 'premium',
+  address: null as string | null,
+  phone: null as string | null,
+  websiteUrl: null as string | null,
+  branding: {
+    primaryColor: null as string | null,
+    bgColor: null as string | null,
+    fontFamily: null as string | null,
+    logoUrl: null as string | null,
+    hidePoweredBy: false,
+  },
+  createdAt: '2026-01-01T00:00:00Z',
+  updatedAt: '2026-01-01T00:00:00Z',
+};
+
 // In-memory session state for the mock
 let mockSession: { accessToken: string; user: typeof MOCK_USER } | null = null;
 
@@ -46,6 +66,10 @@ function unauthorized() {
     status: 401,
     error: { title: 'Unauthorized', status: 401 },
   }));
+}
+
+function nowIso() {
+  return new Date().toISOString();
 }
 
 export const mockInterceptor: HttpInterceptorFn = (req, next) => {
@@ -110,6 +134,101 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
       return unauthorized();
     }
     return respond(mockSession.user);
+  }
+
+  // GET /admin/business
+  if (method === 'GET' && url.endsWith('/admin/business')) {
+    if (!mockSession) {
+      return unauthorized();
+    }
+    return respond({ ...mockBusiness, branding: { ...mockBusiness.branding } });
+  }
+
+  // PUT /admin/business
+  if (method === 'PUT' && url.endsWith('/admin/business')) {
+    if (!mockSession) {
+      return unauthorized();
+    }
+    const body = req.body as { name: string; address?: string; phone?: string; websiteUrl?: string };
+    mockBusiness = {
+      ...mockBusiness,
+      name: body.name ?? mockBusiness.name,
+      address: body.address ?? null,
+      phone: body.phone ?? null,
+      websiteUrl: body.websiteUrl ?? null,
+      updatedAt: nowIso(),
+    };
+    return respond({ ...mockBusiness, branding: { ...mockBusiness.branding } });
+  }
+
+  // PATCH /admin/business/branding
+  if (method === 'PATCH' && url.endsWith('/admin/business/branding')) {
+    if (!mockSession) {
+      return unauthorized();
+    }
+    const body = req.body as {
+      primaryColor?: string;
+      bgColor?: string;
+      fontFamily?: string;
+      hidePoweredBy?: boolean;
+    };
+    mockBusiness = {
+      ...mockBusiness,
+      branding: {
+        primaryColor: body.primaryColor ?? mockBusiness.branding.primaryColor,
+        bgColor: body.bgColor ?? mockBusiness.branding.bgColor,
+        fontFamily: body.fontFamily ?? mockBusiness.branding.fontFamily,
+        logoUrl: mockBusiness.branding.logoUrl,
+        hidePoweredBy: body.hidePoweredBy ?? mockBusiness.branding.hidePoweredBy,
+      },
+      updatedAt: nowIso(),
+    };
+    return respond({ ...mockBusiness, branding: { ...mockBusiness.branding } });
+  }
+
+  // POST /admin/business/logo
+  if (method === 'POST' && url.endsWith('/admin/business/logo')) {
+    if (!mockSession) {
+      return unauthorized();
+    }
+    mockBusiness = {
+      ...mockBusiness,
+      branding: {
+        ...mockBusiness.branding,
+        logoUrl: 'https://placehold.co/200x80?text=Logo',
+      },
+      updatedAt: nowIso(),
+    };
+    return respond({ ...mockBusiness, branding: { ...mockBusiness.branding } });
+  }
+
+  // DELETE /admin/business/logo
+  if (method === 'DELETE' && url.endsWith('/admin/business/logo')) {
+    if (!mockSession) {
+      return unauthorized();
+    }
+    mockBusiness = {
+      ...mockBusiness,
+      branding: {
+        ...mockBusiness.branding,
+        logoUrl: null,
+      },
+      updatedAt: nowIso(),
+    };
+    return respond(null, 204);
+  }
+
+  // GET /public/{tenantSlug}/branding
+  if (method === 'GET' && url.includes('/public/') && url.endsWith('/branding')) {
+    const publicBranding = {
+      tenantName: mockBusiness.name,
+      primaryColor: mockBusiness.branding.primaryColor,
+      bgColor: mockBusiness.branding.bgColor,
+      fontFamily: mockBusiness.branding.fontFamily,
+      logoUrl: mockBusiness.branding.logoUrl,
+      hidePoweredBy: mockBusiness.branding.hidePoweredBy,
+    };
+    return respond(publicBranding);
   }
 
   // Pass through anything not matched (shouldn't happen in mock mode)
