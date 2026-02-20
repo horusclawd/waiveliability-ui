@@ -4,7 +4,7 @@ import { delay } from 'rxjs/operators';
 
 // Canned mock data
 const MOCK_USER = {
-  id: 'user-001',
+  userId: 'user-001',
   email: 'demo@example.com',
   name: 'Demo User',
   role: 'admin',
@@ -63,7 +63,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
       }));
     }
     const newUser: typeof MOCK_USER = {
-      id: `user-${Date.now()}`,
+      userId: `user-${Date.now()}`,
       email: body.email,
       name: body.name,
       role: 'admin',

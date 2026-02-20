@@ -7,7 +7,7 @@ import { lastValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface AuthUser {
-  id: string;
+  userId: string;
   email: string;
   name: string;
   role: string;
