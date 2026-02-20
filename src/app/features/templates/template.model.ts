@@ -1,3 +1,5 @@
+import { FormFieldOption } from '../forms/form.model';
+
 export interface TemplateField {
   id: string;
   fieldType: string;
@@ -5,7 +7,7 @@ export interface TemplateField {
   placeholder: string | null;
   required: boolean;
   fieldOrder: number;
-  options: null;
+  options: FormFieldOption[] | null;
 }
 
 export interface TemplateSummary {
