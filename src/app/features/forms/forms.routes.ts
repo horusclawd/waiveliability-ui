@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from './unsaved-changes.guard';
 
 export const formsRoutes: Routes = [
   {
@@ -14,6 +15,7 @@ export const formsRoutes: Routes = [
       import('./form-builder/form-builder.component').then(
         (m) => m.FormBuilderComponent
       ),
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: ':id/edit',
@@ -21,6 +23,7 @@ export const formsRoutes: Routes = [
       import('./form-builder/form-builder.component').then(
         (m) => m.FormBuilderComponent
       ),
+    canDeactivate: [unsavedChangesGuard],
   },
   {
     path: ':id/preview',

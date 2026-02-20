@@ -1,6 +1,7 @@
 import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
+import { Form, FormField, FormSummary, PageResponse } from '../../features/forms/form.model';
 
 // Canned mock data
 const MOCK_USER = {
@@ -10,6 +11,69 @@ const MOCK_USER = {
   role: 'admin',
   tenantId: 'tenant-001',
 };
+
+// ─── Forms mock data ──────────────────────────────────────────────────────────
+
+const SEED_FORM_1_FIELDS: FormField[] = [
+  { id: 'f001-f1', fieldType: 'text',  label: 'Full Name',  placeholder: 'Enter your name',  required: true,  fieldOrder: 0, options: null },
+  { id: 'f001-f2', fieldType: 'email', label: 'Email',      placeholder: 'Enter your email', required: true,  fieldOrder: 1, options: null },
+  { id: 'f001-f3', fieldType: 'text',  label: 'Signature',  placeholder: 'Type your signature', required: true, fieldOrder: 2, options: null },
+];
+
+const SEED_FORM_2_FIELDS: FormField[] = [
+  { id: 'f002-f1', fieldType: 'text',     label: 'Full Name', placeholder: 'Enter your name', required: true,  fieldOrder: 0, options: null },
+  { id: 'f002-f2', fieldType: 'checkbox', label: 'I agree to the terms', placeholder: null,  required: true,  fieldOrder: 1, options: null },
+];
+
+let mockForms: FormSummary[] = [
+  {
+    id: 'form-001',
+    name: 'Customer Waiver',
+    description: 'Standard customer waiver form',
+    status: 'published',
+    fieldCount: 3,
+    createdAt: '2026-01-10T10:00:00Z',
+    updatedAt: '2026-01-15T12:00:00Z',
+  },
+  {
+    id: 'form-002',
+    name: 'Liability Release',
+    description: null,
+    status: 'draft',
+    fieldCount: 2,
+    createdAt: '2026-02-01T09:00:00Z',
+    updatedAt: '2026-02-01T09:00:00Z',
+  },
+];
+
+const mockFormDetails = new Map<string, Form>([
+  [
+    'form-001',
+    {
+      id: 'form-001',
+      name: 'Customer Waiver',
+      description: 'Standard customer waiver form',
+      status: 'published',
+      fields: SEED_FORM_1_FIELDS,
+      createdAt: '2026-01-10T10:00:00Z',
+      updatedAt: '2026-01-15T12:00:00Z',
+    },
+  ],
+  [
+    'form-002',
+    {
+      id: 'form-002',
+      name: 'Liability Release',
+      description: null,
+      status: 'draft',
+      fields: SEED_FORM_2_FIELDS,
+      createdAt: '2026-02-01T09:00:00Z',
+      updatedAt: '2026-02-01T09:00:00Z',
+    },
+  ],
+]);
+
+// ─── End forms mock data ──────────────────────────────────────────────────────
 
 // In-memory mutable business state (mirrors BusinessResponse shape)
 let mockBusiness = {
@@ -218,6 +282,122 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     };
     return respond(publicBranding);
   }
+
+  // ─── Forms routes ─────────────────────────────────────────────────────────
+
+  const isFormsBase = url.includes('/admin/forms') && !url.includes('/admin/business');
+
+  // GET /admin/forms  (list)
+  if (method === 'GET' && isFormsBase && /\/admin\/forms(\?.*)?$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const page: PageResponse<FormSummary> = {
+      content: [...mockForms],
+      page: 0,
+      size: 20,
+      totalElements: mockForms.length,
+      totalPages: 1,
+      first: true,
+      last: true,
+    };
+    return respond(page);
+  }
+
+  // POST /admin/forms  (create)
+  if (method === 'POST' && isFormsBase && /\/admin\/forms$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const body = req.body as { name: string; description?: string | null };
+    const now = nowIso();
+    const newId = `form-${Date.now()}`;
+    const newForm: Form = {
+      id: newId,
+      name: body.name,
+      description: body.description ?? null,
+      status: 'draft',
+      fields: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    const newSummary: FormSummary = {
+      id: newId,
+      name: body.name,
+      description: body.description ?? null,
+      status: 'draft',
+      fieldCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockForms = [...mockForms, newSummary];
+    mockFormDetails.set(newId, newForm);
+    return respond(newForm, 201);
+  }
+
+  // POST /admin/forms/{id}/publish
+  if (method === 'POST' && isFormsBase && /\/admin\/forms\/[^/]+\/publish$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const id = url.split('/admin/forms/')[1].replace('/publish', '');
+    const form = mockFormDetails.get(id);
+    if (!form) return respond(null, 404);
+    const updated: Form = { ...form, status: 'published', updatedAt: nowIso() };
+    mockFormDetails.set(id, updated);
+    mockForms = mockForms.map((f) => (f.id === id ? { ...f, status: 'published', updatedAt: updated.updatedAt } : f));
+    return respond(updated);
+  }
+
+  // POST /admin/forms/{id}/unpublish
+  if (method === 'POST' && isFormsBase && /\/admin\/forms\/[^/]+\/unpublish$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const id = url.split('/admin/forms/')[1].replace('/unpublish', '');
+    const form = mockFormDetails.get(id);
+    if (!form) return respond(null, 404);
+    const updated: Form = { ...form, status: 'draft', updatedAt: nowIso() };
+    mockFormDetails.set(id, updated);
+    mockForms = mockForms.map((f) => (f.id === id ? { ...f, status: 'draft', updatedAt: updated.updatedAt } : f));
+    return respond(updated);
+  }
+
+  // GET /admin/forms/{id}
+  if (method === 'GET' && isFormsBase && /\/admin\/forms\/[^/?]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const id = url.split('/admin/forms/')[1].split('?')[0];
+    const form = mockFormDetails.get(id);
+    if (!form) return respond(null, 404);
+    return respond({ ...form, fields: [...form.fields] });
+  }
+
+  // PUT /admin/forms/{id}
+  if (method === 'PUT' && isFormsBase && /\/admin\/forms\/[^/]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const id = url.split('/admin/forms/')[1];
+    const existing = mockFormDetails.get(id);
+    if (!existing) return respond(null, 404);
+    const body = req.body as { name: string; description: string | null; fields: FormField[] };
+    const now = nowIso();
+    const updated: Form = {
+      ...existing,
+      name: body.name,
+      description: body.description,
+      fields: body.fields ?? existing.fields,
+      updatedAt: now,
+    };
+    mockFormDetails.set(id, updated);
+    mockForms = mockForms.map((f) =>
+      f.id === id
+        ? { ...f, name: updated.name, description: updated.description, fieldCount: updated.fields.length, updatedAt: now }
+        : f
+    );
+    return respond({ ...updated, fields: [...updated.fields] });
+  }
+
+  // DELETE /admin/forms/{id}
+  if (method === 'DELETE' && isFormsBase && /\/admin\/forms\/[^/]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const id = url.split('/admin/forms/')[1];
+    mockForms = mockForms.filter((f) => f.id !== id);
+    mockFormDetails.delete(id);
+    return respond(null, 204);
+  }
+
+  // ─── End forms routes ──────────────────────────────────────────────────────
 
   // Pass through anything not matched (shouldn't happen in mock mode)
   return next(req);
