@@ -106,8 +106,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // GET /admin/me
   if (method === 'GET' && url.endsWith('/admin/me')) {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !mockSession || !authHeader.includes(mockSession.accessToken)) {
+    if (!mockSession) {
       return unauthorized();
     }
     return respond(mockSession.user);
