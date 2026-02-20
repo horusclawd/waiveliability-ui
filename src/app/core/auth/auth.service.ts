@@ -1,7 +1,8 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs/operators';
+import { tap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface AuthUser {
@@ -24,6 +25,24 @@ export class AuthService {
   readonly isAuthenticated = computed(() => this._token() !== null);
 
   constructor(private http: HttpClient, private router: Router) {}
+
+  /** Called by APP_INITIALIZER — restores user session on page refresh. */
+  loadCurrentUser(): Promise<void> {
+    if (!this._token()) {
+      return Promise.resolve();
+    }
+    return this.http
+      .get<AuthUser>(`${environment.apiBaseUrl}/admin/me`)
+      .pipe(
+        tap((user) => this._user.set(user)),
+        catchError(() => {
+          this.clearSession();
+          return of(null);
+        })
+      )
+      .toPromise()
+      .then(() => undefined);
+  }
 
   login(email: string, password: string) {
     return this.http
@@ -52,8 +71,13 @@ export class AuthService {
   }
 
   logout() {
-    this.clearSession();
-    this.router.navigate(['/auth/login']);
+    this.http
+      .post(`${environment.apiBaseUrl}/auth/logout`, {})
+      .pipe(catchError(() => of(null)))
+      .subscribe(() => {
+        this.clearSession();
+        this.router.navigate(['/auth/login']);
+      });
   }
 
   refreshToken() {
