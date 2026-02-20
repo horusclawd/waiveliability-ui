@@ -1,0 +1,177 @@
+.admin-shell {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+// ── Sidebar ─────────────────────────────────────────────────────────────────
+
+.admin-sidebar {
+  width: var(--wl-sidebar-width);
+  min-width: var(--wl-sidebar-width);
+  background: var(--wl-sidebar-bg);
+  color: var(--wl-sidebar-text);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease, min-width 0.2s ease;
+  overflow: hidden;
+}
+
+.admin-shell.sidebar-collapsed .admin-sidebar {
+  width: 60px;
+  min-width: 60px;
+
+  .brand-name,
+  .nav-label {
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-brand {
+    justify-content: center;
+    padding: 0 1rem;
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.sidebar-toggle {
+  color: var(--wl-sidebar-text) !important;
+  display: none; // Hidden inside sidebar; toggle is in topbar too
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+
+  .brand-icon {
+    font-size: 1.25rem;
+    color: var(--p-primary-color);
+    flex-shrink: 0;
+  }
+
+  .brand-name {
+    transition: opacity 0.15s ease, width 0.2s ease;
+    white-space: nowrap;
+  }
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+  overflow-y: auto;
+}
+
+.sidebar-bottom {
+  padding: 0.5rem 0 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.5rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--wl-sidebar-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+
+  .nav-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    width: 18px;
+    text-align: center;
+  }
+
+  .nav-label {
+    transition: opacity 0.15s ease, width 0.2s ease;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
+
+  &.active {
+    background: var(--wl-sidebar-active-bg);
+    color: var(--wl-sidebar-active-text);
+  }
+}
+
+// ── Main area ────────────────────────────────────────────────────────────────
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--p-surface-ground);
+}
+
+// ── Topbar ───────────────────────────────────────────────────────────────────
+
+.admin-topbar {
+  height: var(--wl-topbar-height);
+  min-height: var(--wl-topbar-height);
+  background: var(--wl-topbar-bg);
+  border-bottom: 1px solid var(--wl-topbar-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  z-index: 10;
+}
+
+.topbar-left,
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.user-menu-btn {
+  display: flex !important;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--p-text-color) !important;
+
+  .user-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+}
+
+// ── Content ──────────────────────────────────────────────────────────────────
+
+.admin-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+}

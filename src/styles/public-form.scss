@@ -1,0 +1,66 @@
+// Public form renderer — tenant branding via CSS custom properties
+// Each tenant's branding is fetched at runtime and applied to these vars.
+
+:root {
+  --wl-tenant-primary: #2563eb;
+  --wl-tenant-bg: #ffffff;
+  --wl-tenant-font: 'Inter', sans-serif;
+  --wl-tenant-logo-url: none;
+}
+
+.public-form-shell {
+  min-height: 100vh;
+  background-color: var(--wl-tenant-bg);
+  font-family: var(--wl-tenant-font);
+}
+
+.public-form-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: var(--wl-tenant-bg);
+
+  .tenant-logo {
+    max-height: 48px;
+    width: auto;
+  }
+}
+
+.public-form-container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.public-form-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  padding: 2rem;
+}
+
+.public-form-progress {
+  margin-bottom: 2rem;
+
+  .progress-bar {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+
+    .progress-fill {
+      height: 100%;
+      background: var(--wl-tenant-primary);
+      border-radius: 9999px;
+      transition: width 0.3s ease;
+    }
+  }
+}
+
+.public-form-submit-btn {
+  background-color: var(--wl-tenant-primary) !important;
+  border-color: var(--wl-tenant-primary) !important;
+
+  &:hover {
+    filter: brightness(0.9);
+  }
+}

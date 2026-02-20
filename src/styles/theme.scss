@@ -1,0 +1,39 @@
+// WaiveLiability — PrimeNG Aura theme token overrides
+// These map to PrimeNG's design token system. Override here to apply brand colors globally.
+
+// Brand palette
+$wl-primary: #2563eb;        // Blue-600 — primary actions
+$wl-primary-dark: #1d4ed8;   // Blue-700 — hover state
+$wl-surface: #f8fafc;        // Slate-50 — page background
+$wl-surface-card: #ffffff;   // White — card backgrounds
+
+// Override PrimeNG Aura tokens via CSS custom properties
+:root {
+  // Primary color
+  --p-primary-color: #{$wl-primary};
+  --p-primary-hover-color: #{$wl-primary-dark};
+  --p-primary-active-color: #{$wl-primary-dark};
+
+  // Text
+  --p-text-color: #1e293b;           // Slate-800
+  --p-text-secondary-color: #64748b; // Slate-500
+
+  // Surface
+  --p-surface-ground: #{$wl-surface};
+  --p-surface-section: #f1f5f9;      // Slate-100
+  --p-surface-card: #{$wl-surface-card};
+  --p-surface-overlay: #{$wl-surface-card};
+  --p-surface-border: #e2e8f0;       // Slate-200
+
+  // Sidebar / nav
+  --wl-sidebar-width: 260px;
+  --wl-sidebar-bg: #0f172a;          // Slate-900
+  --wl-sidebar-text: #cbd5e1;        // Slate-300
+  --wl-sidebar-active-bg: #1e293b;   // Slate-800
+  --wl-sidebar-active-text: #ffffff;
+
+  // Topbar
+  --wl-topbar-height: 60px;
+  --wl-topbar-bg: #ffffff;
+  --wl-topbar-border: #e2e8f0;
+}

@@ -1,0 +1,92 @@
+<div class="admin-shell" [class.sidebar-collapsed]="sidebarCollapsed()">
+
+  <!-- Sidebar -->
+  <nav class="admin-sidebar">
+    <div class="sidebar-header">
+      <a routerLink="/admin/dashboard" class="sidebar-brand">
+        <span class="brand-icon pi pi-shield"></span>
+        <span class="brand-name">WaiveLiability</span>
+      </a>
+      <button
+        pButton
+        class="p-button-text p-button-plain sidebar-toggle"
+        icon="pi pi-bars"
+        (click)="toggleSidebar()"
+      ></button>
+    </div>
+
+    <div class="sidebar-nav">
+      <ul class="nav-list">
+        @for (item of navItems; track item.routerLink) {
+          <li>
+            <a
+              [routerLink]="item.routerLink"
+              routerLinkActive="active"
+              class="nav-item"
+            >
+              <i [class]="item.icon + ' nav-icon'"></i>
+              <span class="nav-label">{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="sidebar-bottom">
+      <ul class="nav-list">
+        @for (item of bottomNavItems; track item.routerLink) {
+          <li>
+            <a
+              [routerLink]="item.routerLink"
+              routerLinkActive="active"
+              class="nav-item"
+            >
+              <i [class]="item.icon + ' nav-icon'"></i>
+              <span class="nav-label">{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main content area -->
+  <div class="admin-main">
+
+    <!-- Topbar -->
+    <header class="admin-topbar">
+      <div class="topbar-left">
+        <button
+          pButton
+          class="p-button-text p-button-plain"
+          icon="pi pi-bars"
+          (click)="toggleSidebar()"
+        ></button>
+      </div>
+
+      <div class="topbar-right">
+        <p-menu #userMenu [model]="userMenuItems" [popup]="true" />
+        <button
+          pButton
+          class="p-button-text p-button-plain user-menu-btn"
+          (click)="userMenu.toggle($event)"
+        >
+          <p-avatar
+            [label]="userInitials()"
+            styleClass="mr-2"
+            size="normal"
+            shape="circle"
+          />
+          <span class="user-name">{{ user()?.name }}</span>
+          <i class="pi pi-chevron-down ml-1"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="admin-content">
+      <router-outlet />
+    </main>
+
+  </div>
+</div>
