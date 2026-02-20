@@ -78,4 +78,23 @@ export class FormService {
         })
       );
   }
+
+  duplicateForm(id: string): Observable<Form> {
+    return this.http
+      .post<Form>(`${this.base}/${id}/duplicate`, {}, { withCredentials: true })
+      .pipe(
+        tap((form) => {
+          const summary: FormSummary = {
+            id: form.id,
+            name: form.name,
+            description: form.description,
+            status: form.status,
+            fieldCount: form.fields.length,
+            createdAt: form.createdAt,
+            updatedAt: form.updatedAt,
+          };
+          this._forms.update(list => [...list, summary]);
+        })
+      );
+  }
 }

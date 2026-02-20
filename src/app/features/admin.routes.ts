@@ -31,8 +31,8 @@ export const adminRoutes: Routes = [
       {
         path: 'templates',
         loadComponent: () =>
-          import('./templates/templates.component').then(
-            (m) => m.TemplatesComponent
+          import('./templates/template-gallery/template-gallery.component').then(
+            (m) => m.TemplateGalleryComponent
           ),
       },
       {

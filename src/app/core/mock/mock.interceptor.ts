@@ -75,6 +75,43 @@ const mockFormDetails = new Map<string, Form>([
 
 // ─── End forms mock data ──────────────────────────────────────────────────────
 
+// ─── Templates mock data ──────────────────────────────────────────────────────
+
+const MOCK_TEMPLATES: import('../../features/templates/template.model').TemplateSummary[] = [
+  { id: 'tpl-001', name: 'Basic Waiver', description: 'Simple liability waiver with name, email and signature', category: 'waiver', isPremium: false, usageCount: 142, fieldCount: 3, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { id: 'tpl-002', name: 'Activity Release', description: 'Activity participation release with emergency contact', category: 'waiver', isPremium: false, usageCount: 89, fieldCount: 4, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { id: 'tpl-003', name: 'NDA Agreement', description: 'Non-disclosure agreement with terms checkbox', category: 'legal', isPremium: true, usageCount: 56, fieldCount: 4, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+  { id: 'tpl-004', name: 'Photo Release', description: 'Photo and media release consent form', category: 'consent', isPremium: false, usageCount: 73, fieldCount: 4, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' },
+];
+
+const MOCK_TEMPLATE_DETAILS = new Map([
+  ['tpl-001', { id: 'tpl-001', name: 'Basic Waiver', description: 'Simple liability waiver with name, email and signature', category: 'waiver', isPremium: false, usageCount: 142, fields: [
+    { id: 'tf-001-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null },
+    { id: 'tf-001-2', fieldType: 'email', label: 'Email Address', placeholder: 'Enter your email', required: true, fieldOrder: 1, options: null },
+    { id: 'tf-001-3', fieldType: 'text', label: 'Signature', placeholder: 'Type your full name as signature', required: true, fieldOrder: 2, options: null },
+  ], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+  ['tpl-002', { id: 'tpl-002', name: 'Activity Release', description: 'Activity participation release with emergency contact', category: 'waiver', isPremium: false, usageCount: 89, fields: [
+    { id: 'tf-002-1', fieldType: 'text', label: 'Participant Name', placeholder: 'Full name', required: true, fieldOrder: 0, options: null },
+    { id: 'tf-002-2', fieldType: 'email', label: 'Email', placeholder: 'Email address', required: true, fieldOrder: 1, options: null },
+    { id: 'tf-002-3', fieldType: 'text', label: 'Emergency Contact', placeholder: 'Name and phone number', required: true, fieldOrder: 2, options: null },
+    { id: 'tf-002-4', fieldType: 'checkbox', label: 'I agree to the terms and conditions', placeholder: null, required: true, fieldOrder: 3, options: null },
+  ], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+  ['tpl-003', { id: 'tpl-003', name: 'NDA Agreement', description: 'Non-disclosure agreement with terms checkbox', category: 'legal', isPremium: true, usageCount: 56, fields: [
+    { id: 'tf-003-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null },
+    { id: 'tf-003-2', fieldType: 'text', label: 'Company Name', placeholder: 'Your company or organization', required: false, fieldOrder: 1, options: null },
+    { id: 'tf-003-3', fieldType: 'email', label: 'Email', placeholder: 'Enter your email', required: true, fieldOrder: 2, options: null },
+    { id: 'tf-003-4', fieldType: 'checkbox', label: 'I agree to the terms of this NDA', placeholder: null, required: true, fieldOrder: 3, options: null },
+  ], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+  ['tpl-004', { id: 'tpl-004', name: 'Photo Release', description: 'Photo and media release consent form', category: 'consent', isPremium: false, usageCount: 73, fields: [
+    { id: 'tf-004-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null },
+    { id: 'tf-004-2', fieldType: 'email', label: 'Email', placeholder: 'Enter your email', required: true, fieldOrder: 1, options: null },
+    { id: 'tf-004-3', fieldType: 'checkbox', label: 'I grant permission to use my photo/likeness', placeholder: null, required: true, fieldOrder: 2, options: null },
+    { id: 'tf-004-4', fieldType: 'text', label: 'Signature', placeholder: 'Type your full name', required: true, fieldOrder: 3, options: null },
+  ], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
+]);
+
+// ─── End templates mock data ──────────────────────────────────────────────────
+
 // In-memory mutable business state (mirrors BusinessResponse shape)
 let mockBusiness = {
   id: 'tenant-001',
@@ -283,9 +320,99 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     return respond(publicBranding);
   }
 
+  // ─── Templates routes ─────────────────────────────────────────────────────
+
+  // GET /admin/templates  (list, with optional ?category=)
+  if (method === 'GET' && url.includes('/admin/templates') && /\/admin\/templates(\?.*)?$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const urlObj = new URL(url, 'http://localhost');
+    const category = urlObj.searchParams.get('category');
+    const filtered = category
+      ? MOCK_TEMPLATES.filter(t => t.category === category)
+      : MOCK_TEMPLATES;
+    const page: PageResponse<import('../../features/templates/template.model').TemplateSummary> = {
+      content: filtered,
+      page: 0, size: 20, totalElements: filtered.length, totalPages: 1, first: true, last: true,
+    };
+    return respond(page);
+  }
+
+  // POST /admin/templates/{id}/import
+  if (method === 'POST' && url.includes('/admin/templates/') && url.endsWith('/import')) {
+    if (!mockSession) return unauthorized();
+    const tplId = url.split('/admin/templates/')[1].replace('/import', '');
+    const tpl = MOCK_TEMPLATE_DETAILS.get(tplId);
+    if (!tpl) return respond(null, 404);
+    const now = nowIso();
+    const newId = `form-${Date.now()}`;
+    const newForm: any = {
+      id: newId,
+      name: tpl.name,
+      description: tpl.description,
+      status: 'draft',
+      fields: tpl.fields.map((f: any, i: number) => ({ ...f, id: `${newId}-f${i}` })),
+      createdAt: now,
+      updatedAt: now,
+    };
+    const newSummary: any = {
+      id: newId,
+      name: tpl.name,
+      description: tpl.description,
+      status: 'draft',
+      fieldCount: tpl.fields.length,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockForms = [...mockForms, newSummary];
+    mockFormDetails.set(newId, newForm);
+    return respond(newForm, 201);
+  }
+
+  // GET /admin/templates/{id}
+  if (method === 'GET' && url.includes('/admin/templates/') && /\/admin\/templates\/[^/?]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const tplId = url.split('/admin/templates/')[1].split('?')[0];
+    const tpl = MOCK_TEMPLATE_DETAILS.get(tplId);
+    if (!tpl) return respond(null, 404);
+    return respond(tpl);
+  }
+
+  // ─── End templates routes ──────────────────────────────────────────────────
+
   // ─── Forms routes ─────────────────────────────────────────────────────────
 
   const isFormsBase = url.includes('/admin/forms') && !url.includes('/admin/business');
+
+  // POST /admin/forms/{id}/duplicate
+  if (method === 'POST' && isFormsBase && url.includes('/admin/forms/') && url.endsWith('/duplicate')) {
+    if (!mockSession) return unauthorized();
+    const formId = url.split('/admin/forms/')[1].replace('/duplicate', '');
+    const original = mockFormDetails.get(formId);
+    if (!original) return respond(null, 404);
+    const now = nowIso();
+    const newId = `form-${Date.now()}`;
+    const copy: any = {
+      ...original,
+      id: newId,
+      name: `Copy of ${original.name}`,
+      status: 'draft',
+      fields: original.fields.map((f: any, i: number) => ({ ...f, id: `${newId}-f${i}` })),
+      createdAt: now,
+      updatedAt: now,
+    };
+    const copySummary: any = {
+      id: newId,
+      name: copy.name,
+      description: copy.description,
+      status: 'draft',
+      fieldCount: copy.fields.length,
+      createdAt: now,
+      updatedAt: now,
+    };
+    mockForms = [...mockForms, copySummary];
+    mockFormDetails.set(newId, copy);
+    return respond(copy, 201);
+  }
 
   // GET /admin/forms  (list)
   if (method === 'GET' && isFormsBase && /\/admin\/forms(\?.*)?$/.test(url)) {

@@ -89,7 +89,7 @@ import { FormSummary } from '../form.model';
               <th>Status</th>
               <th>Fields</th>
               <th>Updated</th>
-              <th style="width: 8rem">Actions</th>
+              <th style="width: 10rem">Actions</th>
             </tr>
           </ng-template>
 
@@ -118,6 +118,14 @@ import { FormSummary } from '../form.model';
                     severity="secondary"
                     pTooltip="Edit"
                     (onClick)="editForm(form)"
+                  />
+                  <p-button
+                    icon="pi pi-copy"
+                    [rounded]="true"
+                    [text]="true"
+                    severity="secondary"
+                    pTooltip="Duplicate"
+                    (onClick)="duplicateForm(form)"
                   />
                   <p-button
                     icon="pi pi-trash"
@@ -208,6 +216,17 @@ export class FormListComponent implements OnInit {
 
   editForm(form: FormSummary) {
     this.router.navigate(['/admin/forms', form.id, 'edit']);
+  }
+
+  duplicateForm(form: FormSummary) {
+    this.formService.duplicateForm(form.id).subscribe({
+      next: () => {
+        this.messageService.add({ severity: 'success', summary: 'Duplicated', detail: `"Copy of ${form.name}" created.` });
+      },
+      error: () => {
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to duplicate form.' });
+      },
+    });
   }
 
   confirmDelete(form: FormSummary) {
