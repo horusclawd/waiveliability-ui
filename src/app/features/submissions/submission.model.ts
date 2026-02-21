@@ -9,6 +9,7 @@ export interface Submission {
   submitterEmail: string | null;
   formData: SubmissionAnswer;
   signatureUrl: string | null;
+  pdfUrl: string | null;
   status: 'pending' | 'reviewed' | 'archived';
   submittedAt: string;
 }

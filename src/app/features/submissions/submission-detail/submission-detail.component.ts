@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
@@ -7,6 +7,8 @@ import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToolbarModule } from 'primeng/toolbar';
+import { interval, Subscription } from 'rxjs';
+import { takeWhile, switchMap } from 'rxjs/operators';
 import { SubmissionService } from '../submission.service';
 import { Submission } from '../submission.model';
 
@@ -100,12 +102,32 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
             }
           </p-card>
 
+          <!-- PDF -->
+          <p-card header="Document">
+            @if (submission()?.pdfUrl) {
+              <div class="flex align-items-center gap-3">
+                <i class="pi pi-file-pdf text-red-500" style="font-size: 1.5rem"></i>
+                <p-button
+                  label="Download PDF"
+                  icon="pi pi-download"
+                  severity="secondary"
+                  (onClick)="downloadPdf()"
+                />
+              </div>
+            } @else {
+              <div class="flex align-items-center gap-2 text-color-secondary">
+                <p-progressSpinner strokeWidth="4" style="width: 24px; height: 24px" />
+                <span>PDF is being generated…</span>
+              </div>
+            }
+          </p-card>
+
         </div>
       }
     </div>
   `,
 })
-export class SubmissionDetailComponent implements OnInit {
+export class SubmissionDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private submissionService = inject(SubmissionService);
@@ -113,14 +135,37 @@ export class SubmissionDetailComponent implements OnInit {
   submission = signal<Submission | null>(null);
   loading = signal(true);
 
+  private pollSub?: Subscription;
+  private pollCount = 0;
+  private readonly MAX_POLLS = 5;
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.submissionService.getSubmission(id).subscribe({
       next: (s) => {
         this.submission.set(s);
         this.loading.set(false);
+        if (!s.pdfUrl) {
+          this.startPolling(id);
+        }
       },
       error: () => this.loading.set(false),
+    });
+  }
+
+  ngOnDestroy() {
+    this.pollSub?.unsubscribe();
+  }
+
+  private startPolling(id: string) {
+    this.pollSub = interval(3000).pipe(
+      takeWhile(() => this.pollCount < this.MAX_POLLS && !this.submission()?.pdfUrl)
+    ).subscribe(() => {
+      this.pollCount++;
+      this.submissionService.getSubmission(id).subscribe(s => {
+        this.submission.set(s);
+        if (s.pdfUrl) this.pollSub?.unsubscribe();
+      });
     });
   }
 
@@ -140,6 +185,11 @@ export class SubmissionDetailComponent implements OnInit {
       case 'archived': return 'secondary';
       default: return undefined;
     }
+  }
+
+  downloadPdf() {
+    const url = this.submission()?.pdfUrl;
+    if (url) window.open(url, '_blank');
   }
 
   back() {
