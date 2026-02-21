@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
-import { Plan } from './billing.service';
+import { Plan } from '../billing.service';
 
 @Component({
   selector: 'app-plan-card',
