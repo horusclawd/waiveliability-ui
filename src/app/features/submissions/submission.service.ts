@@ -26,6 +26,10 @@ export class SubmissionService {
     );
   }
 
+  getSubmission(id: string) {
+    return this.http.get<Submission>(`${this.adminBase}/${id}`, { withCredentials: true });
+  }
+
   getPublicForm(tenantSlug: string, formId: string) {
     return this.http.get<Form>(`${environment.apiBaseUrl}/public/${tenantSlug}/forms/${formId}`);
   }
