@@ -52,7 +52,10 @@ export class AdminLayoutComponent {
     { label: 'Billing',  icon: 'pi pi-credit-card', routerLink: '/admin/billing'  },
     { label: 'Settings', icon: 'pi pi-cog',          routerLink: '/admin/settings' },
     { label: 'Notifications', icon: 'pi pi-bell',   routerLink: '/admin/settings/notifications' },
+    { label: 'Team', icon: 'pi pi-users',           routerLink: '/admin/settings/team' },
   ];
+
+  isAdmin = computed(() => this.user()?.role === 'admin');
 
   toggleSidebar() {
     this.sidebarCollapsed.update((v) => !v);

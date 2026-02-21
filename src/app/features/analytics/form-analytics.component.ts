@@ -8,7 +8,7 @@ import { ButtonModule } from 'primeng/button';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 
-import { AnalyticsService, FormAnalytics } from '../analytics.service';
+import { AnalyticsService, FormAnalytics } from './analytics.service';
 import { FormService } from '../forms/form.service';
 
 type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contrast' | undefined;
