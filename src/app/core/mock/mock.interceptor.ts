@@ -827,6 +827,106 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // ─── End billing routes ─────────────────────────────────────────────────────
 
+  // ─── Analytics routes ─────────────────────────────────────────────────────
+
+  // GET /admin/analytics/overview
+  if (method === 'GET' && url.endsWith('/admin/analytics/overview')) {
+    if (!mockSession) return unauthorized();
+
+    // Generate last 30 days of data
+    const today = new Date();
+    const submissionsByDay: { date: string; count: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      // Generate some random counts with some trend
+      const baseCount = 3 + Math.floor(Math.random() * 5);
+      submissionsByDay.push({ date: dateStr, count: baseCount });
+    }
+
+    // Count by status from mockSubmissions
+    const pendingCount = mockSubmissions.filter(s => s.status === 'pending').length;
+    const reviewedCount = mockSubmissions.filter(s => s.status === 'reviewed').length;
+    const archivedCount = mockSubmissions.filter(s => s.status === 'archived').length;
+
+    // Get form names for recent submissions
+    const recentSubmissions = mockSubmissions
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+      .slice(0, 5)
+      .map(s => ({
+        id: s.id,
+        formId: s.formId,
+        formName: mockFormDetails.get(s.formId)?.name ?? 'Unknown Form',
+        submitterName: s.submitterName,
+        submitterEmail: s.submitterEmail,
+        status: s.status,
+        submittedAt: s.submittedAt,
+      }));
+
+    const overview = {
+      totalSubmissions: mockSubmissions.length,
+      pendingCount,
+      reviewedCount,
+      archivedCount,
+      submissionsByDay,
+      submissionsByStatus: [
+        { status: 'pending', count: pendingCount },
+        { status: 'reviewed', count: reviewedCount },
+        { status: 'archived', count: archivedCount },
+      ],
+      recentSubmissions,
+    };
+    return respond(overview);
+  }
+
+  // GET /admin/analytics/forms/:formId
+  if (method === 'GET' && /\/admin\/analytics\/forms\/[^/?]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const formId = url.split('/admin/analytics/forms/')[1].split('?')[0];
+    const form = mockFormDetails.get(formId);
+
+    if (!form) return respond(null, 404);
+
+    // Filter submissions for this form
+    const formSubmissions = mockSubmissions.filter(s => s.formId === formId);
+
+    // Generate trend data for last 30 days
+    const today = new Date();
+    const submissionsTrend: { date: string; count: number }[] = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const daySubmissions = formSubmissions.filter(s =>
+        s.submittedAt.startsWith(dateStr)
+      );
+      submissionsTrend.push({ date: dateStr, count: daySubmissions.length });
+    }
+
+    const pendingCount = formSubmissions.filter(s => s.status === 'pending').length;
+    const reviewedCount = formSubmissions.filter(s => s.status === 'reviewed').length;
+    const archivedCount = formSubmissions.filter(s => s.status === 'archived').length;
+
+    const formAnalytics = {
+      formId,
+      formName: form.name,
+      totalSubmissions: formSubmissions.length,
+      pendingCount,
+      reviewedCount,
+      archivedCount,
+      submissionsTrend,
+      statusBreakdown: [
+        { status: 'pending', count: pendingCount },
+        { status: 'reviewed', count: reviewedCount },
+        { status: 'archived', count: archivedCount },
+      ],
+    };
+    return respond(formAnalytics);
+  }
+
+  // ─── End analytics routes ─────────────────────────────────────────────────
+
   // Pass through anything not matched (shouldn't happen in mock mode)
   return next(req);
 };
