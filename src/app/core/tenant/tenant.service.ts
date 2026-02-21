@@ -12,6 +12,11 @@ export interface BrandingInfo {
   hidePoweredBy: boolean;
 }
 
+export interface NotificationSettings {
+  notificationsEnabled: boolean;
+  notificationEmail: string | null;
+}
+
 export interface BusinessResponse {
   id: string;
   name: string;
@@ -21,6 +26,8 @@ export interface BusinessResponse {
   phone: string | null;
   websiteUrl: string | null;
   branding: BrandingInfo;
+  notificationsEnabled: boolean;
+  notificationEmail: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -92,6 +99,43 @@ export class TenantService {
             this._tenant.set({
               ...current,
               branding: { ...current.branding, logoUrl: null },
+            });
+          }
+        })
+      );
+  }
+
+  getNotificationSettings(): Observable<NotificationSettings> {
+    return this.http
+      .get<NotificationSettings>(`${environment.apiBaseUrl}/admin/settings/notifications`, { withCredentials: true })
+      .pipe(
+        tap((settings) => {
+          const current = this._tenant();
+          if (current) {
+            this._tenant.set({
+              ...current,
+              notificationsEnabled: settings.notificationsEnabled,
+              notificationEmail: settings.notificationEmail,
+            });
+          }
+        })
+      );
+  }
+
+  updateNotificationSettings(req: {
+    notificationsEnabled: boolean;
+    notificationEmail: string | null;
+  }): Observable<NotificationSettings> {
+    return this.http
+      .put<NotificationSettings>(`${environment.apiBaseUrl}/admin/settings/notifications`, req, { withCredentials: true })
+      .pipe(
+        tap((settings) => {
+          const current = this._tenant();
+          if (current) {
+            this._tenant.set({
+              ...current,
+              notificationsEnabled: settings.notificationsEnabled,
+              notificationEmail: settings.notificationEmail,
             });
           }
         })

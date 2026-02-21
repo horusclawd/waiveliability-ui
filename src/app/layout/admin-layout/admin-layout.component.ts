@@ -51,6 +51,7 @@ export class AdminLayoutComponent {
   bottomNavItems = [
     { label: 'Billing',  icon: 'pi pi-credit-card', routerLink: '/admin/billing'  },
     { label: 'Settings', icon: 'pi pi-cog',          routerLink: '/admin/settings' },
+    { label: 'Notifications', icon: 'pi pi-bell',   routerLink: '/admin/settings/notifications' },
   ];
 
   toggleSidebar() {
