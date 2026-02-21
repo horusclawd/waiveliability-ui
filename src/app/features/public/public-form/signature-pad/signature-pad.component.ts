@@ -1,11 +1,12 @@
 import { Component, ElementRef, ViewChild, afterNextRender, inject, signal, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'app-signature-pad',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ButtonModule],
   template: `
     <div class="signature-pad-container" style="border: 1px solid var(--surface-300); border-radius: 6px; overflow: hidden;">
       <canvas
