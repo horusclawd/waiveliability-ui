@@ -387,10 +387,13 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
   if (method === 'GET' && url.includes('/public/') && url.includes('/forms/')) {
     const parts = url.split('/forms/');
     const formId = parts[1]?.split('?')[0];
+    console.log('[DEBUG] Public form request, formId:', formId);
     const form = formId ? mockFormDetails.get(formId) : null;
+    console.log('[DEBUG] Form from mockFormDetails:', form);
     if (!form) return respond(null, 404);
     if (form.status !== 'published') return respond({ title: 'Form not available', status: 403 }, 403);
     const response = { ...form, fields: [...form.fields] };
+    console.log('[DEBUG] Returning fields:', response.fields.map(f => f.label + ' (' + f.fieldType + ')'));
     return respond(response);
   }
 
@@ -671,6 +674,8 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     const existing = mockFormDetails.get(id);
     if (!existing) return respond(null, 404);
     const body = req.body as { name: string; description: string | null; fields: FormField[] };
+    console.log('[DEBUG] PUT form, id:', id, 'fields count:', body.fields?.length);
+    console.log('[DEBUG] Fields:', body.fields?.map((f: any) => f.label + ' (' + f.fieldType + ')'));
     const now = nowIso();
     const updated: Form = {
       ...existing,
