@@ -167,10 +167,9 @@ interface PublicBranding {
                     />
                   }
 
-                  <!-- Content field (read-only legal text) -->
+                  <!-- Content field (read-only legal text with rich formatting) -->
                   @else if (field.fieldType === 'content') {
-                    <div class="content-field p-3 surface-50 border-round" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6">
-                      {{ field.content || '' }}
+                    <div class="content-field p-3 surface-50 border-round" style="font-size: 0.95rem; line-height: 1.6" [innerHTML]="field.content || ''">
                     </div>
                   }
 

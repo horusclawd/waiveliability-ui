@@ -18,6 +18,7 @@ import {
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
+import { EditorModule } from 'primeng/editor';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
@@ -60,6 +61,7 @@ function generateId(): string {
     ButtonModule,
     InputTextModule,
     TextareaModule,
+    EditorModule,
     ToastModule,
     TagModule,
     ToggleSwitchModule,
@@ -358,15 +360,13 @@ function generateId(): string {
                   @if (field.fieldType === 'content') {
                     <div class="flex flex-column gap-1">
                       <label class="font-medium text-sm">Content Text</label>
-                      <textarea
-                        pTextarea
+                      <p-editor
                         [ngModel]="field.content"
                         (ngModelChange)="updateFieldProp(field.id, 'content', $event)"
+                        [style]="{ height: '200px' }"
                         placeholder="Enter legal text, terms, or other content to display..."
-                        rows="6"
-                        style="width: 100%; resize: vertical"
-                      ></textarea>
-                      <small class="text-color-secondary">This text will be displayed to users but cannot be edited.</small>
+                      />
+                      <small class="text-color-secondary">This text will be displayed to users but cannot be edited. Use bold, italics, lists, etc.</small>
                     </div>
                   }
 

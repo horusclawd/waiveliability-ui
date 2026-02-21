@@ -2,8 +2,14 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
-  // Default redirect
-  { path: '', redirectTo: 'admin', pathMatch: 'full' },
+  // Landing page
+  {
+    path: '',
+    loadComponent: () =>
+      import('./features/public/landing/landing.component').then(
+        (m) => m.LandingComponent
+      ),
+  },
 
   // Public form routes — no auth, own layout, no admin chrome
   {
