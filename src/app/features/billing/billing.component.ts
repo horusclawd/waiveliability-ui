@@ -6,6 +6,7 @@ import { ProgressBarModule } from 'primeng/progressbar';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { forkJoin } from 'rxjs';
 import { PlanUpgradeDialogComponent } from './plan-upgrade-dialog/plan-upgrade-dialog.component';
 import { BillingService, Plan } from './billing.service';
 
@@ -297,13 +298,11 @@ export class BillingComponent implements OnInit {
 
   loadData(): void {
     this.loading.set(true);
-    this.billingService.getSubscription().subscribe({
-      next: () => {
-        this.billingService.getLimits().subscribe({
-          next: () => this.loading.set(false),
-          error: () => this.loading.set(false),
-        });
-      },
+    forkJoin({
+      subscription: this.billingService.getSubscription(),
+      limits: this.billingService.getLimits(),
+    }).subscribe({
+      next: () => this.loading.set(false),
       error: () => this.loading.set(false),
     });
   }

@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, take } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface Subscription {
@@ -89,7 +89,7 @@ export class BillingService {
   }
 
   refresh(): void {
-    this.getSubscription().subscribe();
-    this.getLimits().subscribe();
+    this.getSubscription().pipe(take(1)).subscribe();
+    this.getLimits().pipe(take(1)).subscribe();
   }
 }
