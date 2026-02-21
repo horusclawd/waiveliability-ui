@@ -84,7 +84,7 @@ import { BillingService, Plan } from './billing.service';
               <div class="usage-header">
                 <span class="usage-label">Forms</span>
                 <span class="usage-count">
-                  {{ limits()?.forms.used ?? 0 }} / {{ getLimitDisplay(limits()?.forms.limit) }}
+                  {{ limits()?.forms?.used ?? 0 }} / {{ getLimitDisplay(limits()?.forms?.limit) }}
                 </span>
               </div>
               <p-progressBar
@@ -104,8 +104,8 @@ import { BillingService, Plan } from './billing.service';
               <div class="usage-header">
                 <span class="usage-label">Submissions</span>
                 <span class="usage-count">
-                  {{ limits()?.submissions.used ?? 0 }} /
-                  {{ getLimitDisplay(limits()?.submissions.limit) }}
+                  {{ limits()?.submissions?.used ?? 0 }} /
+                  {{ getLimitDisplay(limits()?.submissions?.limit) }}
                 </span>
               </div>
               <p-progressBar
