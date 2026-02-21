@@ -1,32 +1,38 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CardModule } from 'primeng/card';
-import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ButtonModule } from 'primeng/button';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 
-import { AnalyticsService, AnalyticsOverview, RecentSubmission } from '../analytics.service';
+import { AnalyticsService, FormAnalytics } from '../analytics.service';
+import { FormService } from '../forms/form.service';
 
 type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contrast' | undefined;
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-form-analytics',
   standalone: true,
   imports: [
     CommonModule,
     RouterLink,
     CardModule,
-    TableModule,
     TagModule,
     ProgressSpinnerModule,
+    ButtonModule,
     NgxEchartsModule,
   ],
   template: `
     <div class="router-fade p-4">
-      <h2 class="mt-0 mb-4 text-xl font-semibold">Dashboard</h2>
+      <div class="flex align-items-center gap-3 mb-4">
+        <a routerLink="/admin/analytics" class="text-primary no-underline">
+          <i class="pi pi-arrow-left"></i>
+        </a>
+        <h2 class="m-0 text-xl font-semibold">Form Analytics</h2>
+      </div>
 
       @if (loading()) {
         <div class="flex justify-content-center p-6">
@@ -39,9 +45,15 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
             <p class="mt-2 text-color-secondary">{{ error() }}</p>
           </div>
         </p-card>
-      } @else if (overview()) {
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      } @else if (analytics()) {
+        <!-- Form Name -->
+        <div class="mb-4">
+          <h3 class="text-lg font-semibold m-0">{{ analytics()!.formName }}</h3>
+          <span class="text-color-secondary text-sm">Form ID: {{ formId }}</span>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
           <p-card styleClass="stat-card">
             <div class="flex align-items-center gap-3">
               <div class="stat-icon bg-primary-50 text-primary">
@@ -49,7 +61,7 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
               </div>
               <div>
                 <div class="text-color-secondary text-sm">Total Submissions</div>
-                <div class="text-2xl font-semibold">{{ overview()!.totalSubmissions }}</div>
+                <div class="text-2xl font-semibold">{{ analytics()!.totalSubmissions }}</div>
               </div>
             </div>
           </p-card>
@@ -61,7 +73,7 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
               </div>
               <div>
                 <div class="text-color-secondary text-sm">Pending</div>
-                <div class="text-2xl font-semibold">{{ overview()!.pendingCount }}</div>
+                <div class="text-2xl font-semibold">{{ analytics()!.pendingCount }}</div>
               </div>
             </div>
           </p-card>
@@ -73,7 +85,7 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
               </div>
               <div>
                 <div class="text-color-secondary text-sm">Reviewed</div>
-                <div class="text-2xl font-semibold">{{ overview()!.reviewedCount }}</div>
+                <div class="text-2xl font-semibold">{{ analytics()!.reviewedCount }}</div>
               </div>
             </div>
           </p-card>
@@ -85,65 +97,24 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
               </div>
               <div>
                 <div class="text-color-secondary text-sm">Archived</div>
-                <div class="text-2xl font-semibold">{{ overview()!.archivedCount }}</div>
+                <div class="text-2xl font-semibold">{{ analytics()!.archivedCount }}</div>
               </div>
             </div>
           </p-card>
         </div>
 
         <!-- Charts Row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <!-- Submissions by Day Line Chart -->
-          <p-card header="Submissions (Last 30 Days)">
-            <div echarts [options]="submissionsTrendChart()" class="chart-container"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Submissions Trend -->
+          <p-card header="Submission Trend">
+            <div echarts [options]="trendChart()" class="chart-container"></div>
           </p-card>
 
-          <!-- Submissions by Status Bar Chart -->
-          <p-card header="Submissions by Status">
-            <div echarts [options]="statusChart()" class="chart-container"></div>
+          <!-- Status Breakdown -->
+          <p-card header="Status Breakdown">
+            <div echarts [options]="statusPieChart()" class="chart-container"></div>
           </p-card>
         </div>
-
-        <!-- Recent Submissions Table -->
-        <p-card header="Recent Submissions">
-          <p-table
-            [value]="overview()!.recentSubmissions"
-            styleClass="p-datatable-sm"
-            [rowHover]="true"
-          >
-            <ng-template pTemplate="header">
-              <tr>
-                <th>Submitter</th>
-                <th>Form</th>
-                <th>Status</th>
-                <th>Submitted</th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-sub>
-              <tr>
-                <td>
-                  <div class="font-semibold">{{ sub.submitterName }}</div>
-                  <div class="text-sm text-color-secondary">{{ sub.submitterEmail ?? '—' }}</div>
-                </td>
-                <td>{{ sub.formName }}</td>
-                <td>
-                  <p-tag
-                    [value]="sub.status | titlecase"
-                    [severity]="statusSeverity(sub.status)"
-                  />
-                </td>
-                <td class="text-sm">{{ sub.submittedAt | date:'medium' }}</td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="4" class="text-center text-color-secondary py-4">
-                  No recent submissions
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </p-card>
       }
     </div>
   `,
@@ -167,40 +138,47 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
     }
   `],
 })
-export class DashboardComponent implements OnInit {
+export class FormAnalyticsComponent implements OnInit {
   private analyticsService = inject(AnalyticsService);
+  private formService = inject(FormService);
+  private route = inject(ActivatedRoute);
 
   loading = signal(true);
   error = signal<string | null>(null);
-  overview = this.analyticsService.overview;
+  analytics = signal<FormAnalytics | null>(null);
+  formId = '';
 
-  submissionsTrendChart = signal<EChartsOption>({});
-  statusChart = signal<EChartsOption>({});
+  trendChart = signal<EChartsOption>({});
+  statusPieChart = signal<EChartsOption>({});
 
   ngOnInit() {
-    this.loadData();
+    this.formId = this.route.snapshot.paramMap.get('id') || '';
+    if (this.formId) {
+      this.loadData();
+    }
   }
 
   private loadData() {
     this.loading.set(true);
-    this.analyticsService.getOverview().subscribe({
+    this.analyticsService.getFormAnalytics(this.formId).subscribe({
       next: (data) => {
         this.loading.set(false);
+        this.analytics.set(data);
         this.setupCharts(data);
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err?.error?.title ?? 'Failed to load dashboard data');
+        this.error.set(err?.error?.title ?? 'Failed to load form analytics');
       },
     });
   }
 
-  private setupCharts(data: AnalyticsOverview) {
-    // Line chart for submissions by day
-    const trendDates = data.submissionsByDay.map((d) => d.date);
-    const trendCounts = data.submissionsByDay.map((d) => d.count);
+  private setupCharts(data: FormAnalytics) {
+    // Line chart for submissions trend
+    const trendDates = data.submissionsTrend.map((d) => d.date);
+    const trendCounts = data.submissionsTrend.map((d) => d.count);
 
-    this.submissionsTrendChart.set({
+    this.trendChart.set({
       tooltip: {
         trigger: 'axis',
       },
@@ -245,58 +223,46 @@ export class DashboardComponent implements OnInit {
       ],
     });
 
-    // Bar chart for submissions by status
-    const statusLabels = data.submissionsByStatus.map((s) => s.status.charAt(0).toUpperCase() + s.status.slice(1));
-    const statusCounts = data.submissionsByStatus.map((s) => s.count);
+    // Pie chart for status breakdown
+    const statusData = data.statusBreakdown.map((s) => ({
+      name: s.status.charAt(0).toUpperCase() + s.status.slice(1),
+      value: s.count,
+    }));
 
-    this.statusChart.set({
+    this.statusPieChart.set({
       tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          type: 'shadow',
-        },
+        trigger: 'item',
       },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true,
-      },
-      xAxis: {
-        type: 'category',
-        data: statusLabels,
-      },
-      yAxis: {
-        type: 'value',
-        minInterval: 1,
+      legend: {
+        orient: 'horizontal',
+        bottom: 'bottom',
       },
       series: [
         {
-          name: 'Submissions',
-          type: 'bar',
-          data: statusCounts,
+          name: 'Status',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
           itemStyle: {
-            color: (params: any) => {
-              const colors: Record<string, string> = {
-                Pending: '#f59e0b',
-                Reviewed: '#22c55e',
-                Archived: '#6b7280',
-              };
-              return colors[statusLabels[params.dataIndex]] || '#3b82f6';
+            borderRadius: 4,
+            borderColor: '#fff',
+            borderWidth: 2,
+          },
+          label: {
+            show: false,
+            position: 'center',
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 16,
+              fontWeight: 'bold',
             },
           },
-          barRadius: [4, 4, 0, 0],
+          data: statusData,
+          color: ['#f59e0b', '#22c55e', '#6b7280'],
         },
       ],
     });
-  }
-
-  statusSeverity(status: RecentSubmission['status']): TagSeverity {
-    switch (status) {
-      case 'pending': return 'warn';
-      case 'reviewed': return 'success';
-      case 'archived': return 'secondary';
-      default: return undefined;
-    }
   }
 }

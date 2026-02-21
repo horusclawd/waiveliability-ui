@@ -43,6 +43,13 @@ export const adminRoutes: Routes = [
           ),
       },
       {
+        path: 'analytics/forms/:id',
+        loadComponent: () =>
+          import('./analytics/form-analytics.component').then(
+            (m) => m.FormAnalyticsComponent
+          ),
+      },
+      {
         path: 'billing',
         loadComponent: () =>
           import('./billing/billing.component').then(
