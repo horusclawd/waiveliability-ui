@@ -388,8 +388,9 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     const parts = url.split('/forms/');
     const formId = parts[1]?.split('?')[0];
     console.log('[DEBUG] Public form request, formId:', formId);
+    console.log('[DEBUG] mockFormDetails size:', mockFormDetails.size);
     const form = formId ? mockFormDetails.get(formId) : null;
-    console.log('[DEBUG] Form from mockFormDetails:', form);
+    console.log('[DEBUG] Form from mockFormDetails:', form?.fields?.length, 'fields');
     if (!form) return respond(null, 404);
     if (form.status !== 'published') return respond({ title: 'Form not available', status: 403 }, 403);
     const response = { ...form, fields: [...form.fields] };
