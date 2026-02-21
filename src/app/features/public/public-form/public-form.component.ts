@@ -243,8 +243,9 @@ export class PublicFormComponent implements OnInit {
   }
 
   private loadForm(slug: string, formId: string) {
+    // Add cache-busting query param
     this.http
-      .get<Form>(`${environment.apiBaseUrl}/public/${slug}/forms/${formId}`)
+      .get<Form>(`${environment.apiBaseUrl}/public/${slug}/forms/${formId}?_=${Date.now()}`)
       .subscribe({
         next: (form) => {
           this.form.set(form);
