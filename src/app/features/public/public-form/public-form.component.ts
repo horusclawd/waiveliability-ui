@@ -86,7 +86,7 @@ interface PublicBranding {
 
             <!-- Fields -->
             <div class="flex flex-column gap-4">
-              @for (field of sortedFields(); track field.id) {
+              <ng-container *ngFor="let field of sortedFields()">
                 <div class="flex flex-column gap-1">
                   <label [for]="field.id" class="font-medium text-sm">
                     {{ field.label }}
@@ -178,7 +178,8 @@ interface PublicBranding {
                     <small class="text-red-500">{{ errors()[field.id] }}</small>
                   }
                 </div>
-              }
+              </ng-container>
+            }
             </div>
 
             <p-divider />

@@ -390,7 +390,8 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     const form = formId ? mockFormDetails.get(formId) : null;
     if (!form) return respond(null, 404);
     if (form.status !== 'published') return respond({ title: 'Form not available', status: 403 }, 403);
-    return respond({ ...form, fields: [...form.fields] });
+    const response = { ...form, fields: [...form.fields] };
+    return respond(response);
   }
 
   // POST /public/{slug}/forms/{formId}/submit
