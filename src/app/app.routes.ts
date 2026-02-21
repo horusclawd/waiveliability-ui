@@ -14,6 +14,27 @@ export const routes: Routes = [
       ),
   },
 
+  // New public form routes for Sprint 5
+  {
+    path: 'public/:tenantSlug/forms/:formId',
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/public/public-form/public-form.component').then(
+            (m) => m.PublicFormComponent
+          ),
+      },
+      {
+        path: 'confirmation',
+        loadComponent: () =>
+          import('./features/public/public-confirmation/public-confirmation.component').then(
+            (m) => m.PublicConfirmationComponent
+          ),
+      },
+    ],
+  },
+
   // Auth routes (unauthenticated layout)
   {
     path: 'auth',

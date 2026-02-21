@@ -75,6 +75,12 @@ const mockFormDetails = new Map<string, Form>([
 
 // ─── End forms mock data ──────────────────────────────────────────────────────
 
+// ─── Submissions mock data ────────────────────────────────────────────────────
+
+let mockSubmissions: any[] = [];
+
+// ─── End submissions mock data ────────────────────────────────────────────────
+
 // ─── Templates mock data ──────────────────────────────────────────────────────
 
 const MOCK_TEMPLATES: import('../../features/templates/template.model').TemplateSummary[] = [
@@ -307,7 +313,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     return respond(null, 204);
   }
 
-  // GET /public/{tenantSlug}/branding
+  // GET /public/{tenantSlug}/branding — must come BEFORE the public forms handlers
   if (method === 'GET' && url.includes('/public/') && url.endsWith('/branding')) {
     const publicBranding = {
       tenantName: mockBusiness.name,
@@ -318,6 +324,38 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
       hidePoweredBy: mockBusiness.branding.hidePoweredBy,
     };
     return respond(publicBranding);
+  }
+
+  // GET /public/{slug}/forms/{formId} — public form fetch (no auth)
+  if (method === 'GET' && url.includes('/public/') && url.includes('/forms/')) {
+    const parts = url.split('/forms/');
+    const formId = parts[1]?.split('?')[0];
+    const form = formId ? mockFormDetails.get(formId) : null;
+    if (!form) return respond(null, 404);
+    if (form.status !== 'published') return respond({ title: 'Form not available', status: 403 }, 403);
+    return respond({ ...form, fields: [...form.fields] });
+  }
+
+  // POST /public/{slug}/forms/{formId}/submit
+  if (method === 'POST' && url.includes('/public/') && url.endsWith('/submit')) {
+    const parts = url.split('/forms/');
+    const formId = parts[1]?.replace('/submit', '');
+    const form = formId ? mockFormDetails.get(formId) : null;
+    if (!form) return respond(null, 404);
+    const body = req.body as { answers: Record<string, any>; signatureData?: string };
+    const now = nowIso();
+    const submission: any = {
+      id: `sub-${Date.now()}`,
+      formId,
+      submitterName: Object.values(body.answers ?? {})[0]?.toString() ?? null,
+      submitterEmail: null,
+      formData: body.answers ?? {},
+      signatureUrl: null,
+      status: 'pending',
+      submittedAt: now,
+    };
+    mockSubmissions = [...mockSubmissions, submission];
+    return respond(submission, 201);
   }
 
   // ─── Templates routes ─────────────────────────────────────────────────────
@@ -378,6 +416,29 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   // ─── End templates routes ──────────────────────────────────────────────────
+
+  // ─── Submissions admin routes ─────────────────────────────────────────────
+
+  // GET /admin/submissions (list)
+  if (method === 'GET' && url.includes('/admin/submissions') && /\/admin\/submissions(\?.*)?$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const page: PageResponse<any> = {
+      content: [...mockSubmissions],
+      page: 0, size: 20, totalElements: mockSubmissions.length, totalPages: 1, first: true, last: true,
+    };
+    return respond(page);
+  }
+
+  // GET /admin/submissions/{id}
+  if (method === 'GET' && url.includes('/admin/submissions/') && /\/admin\/submissions\/[^/?]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const id = url.split('/admin/submissions/')[1].split('?')[0];
+    const sub = mockSubmissions.find(s => s.id === id);
+    if (!sub) return respond(null, 404);
+    return respond(sub);
+  }
+
+  // ─── End submissions admin routes ─────────────────────────────────────────
 
   // ─── Forms routes ─────────────────────────────────────────────────────────
 
