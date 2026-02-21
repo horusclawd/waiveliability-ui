@@ -1,12 +1,16 @@
 import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToolbarModule } from 'primeng/toolbar';
+import { SelectModule } from 'primeng/select';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 import { interval, Subscription } from 'rxjs';
 import { takeWhile, switchMap } from 'rxjs/operators';
 import { SubmissionService } from '../submission.service';
@@ -14,20 +18,30 @@ import { Submission } from '../submission.model';
 
 type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contrast' | undefined;
 
+interface StatusOption {
+  label: string;
+  value: string;
+}
+
 @Component({
   selector: 'app-submission-detail',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     CardModule,
     ButtonModule,
     TagModule,
     DividerModule,
     ProgressSpinnerModule,
     ToolbarModule,
+    SelectModule,
+    ToastModule,
   ],
+  providers: [MessageService],
   template: `
     <div class="router-fade p-4">
+      <p-toast />
 
       <p-toolbar styleClass="mb-4">
         <ng-template #start>
@@ -41,9 +55,13 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
         </ng-template>
         <ng-template #end>
           @if (submission()) {
-            <p-tag
-              [value]="submission()!.status | titlecase"
-              [severity]="statusSeverity(submission()!.status)"
+            <p-select
+              [options]="statusOptions"
+              [ngModel]="submission()!.status"
+              optionLabel="label"
+              optionValue="value"
+              [style]="{ 'min-width': '150px' }"
+              (onChange)="onStatusChange($event.value)"
             />
           }
         </ng-template>
@@ -69,11 +87,11 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
             <div class="grid">
               <div class="col-12 md:col-6">
                 <div class="text-sm text-color-secondary mb-1">Name</div>
-                <div class="font-semibold">{{ sub.submitterName ?? '—' }}</div>
+                <div class="font-semibold">{{ sub.submitterName ?? '\u2014' }}</div>
               </div>
               <div class="col-12 md:col-6">
                 <div class="text-sm text-color-secondary mb-1">Email</div>
-                <div class="font-semibold">{{ sub.submitterEmail ?? '—' }}</div>
+                <div class="font-semibold">{{ sub.submitterEmail ?? '\u2014' }}</div>
               </div>
               <div class="col-12 md:col-6">
                 <div class="text-sm text-color-secondary mb-1">Submitted</div>
@@ -131,9 +149,16 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private submissionService = inject(SubmissionService);
+  private messageService = inject(MessageService);
 
   submission = signal<Submission | null>(null);
   loading = signal(true);
+
+  statusOptions: StatusOption[] = [
+    { label: 'Pending', value: 'pending' },
+    { label: 'Reviewed', value: 'reviewed' },
+    { label: 'Archived', value: 'archived' },
+  ];
 
   private pollSub?: Subscription;
   private pollCount = 0;
@@ -161,9 +186,41 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
     this.pollSub = interval(3000).pipe(
       takeWhile(() => this.pollCount < this.MAX_POLLS && !this.submission()?.pdfUrl),
       switchMap(() => { this.pollCount++; return this.submissionService.getSubmission(id); })
-    ).subscribe(s => {
-      this.submission.set(s);
-      if (s.pdfUrl) this.pollSub?.unsubscribe();
+    ).subscribe({
+      next: s => {
+        this.submission.set(s);
+        if (s.pdfUrl) this.pollSub?.unsubscribe();
+      },
+      error: () => {
+        this.pollSub?.unsubscribe();
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to check PDF status. Please refresh.',
+        });
+      },
+    });
+  }
+
+  onStatusChange(newStatus: string) {
+    const sub = this.submission();
+    if (!sub || newStatus === sub.status) return;
+    this.submissionService.updateStatus(sub.id, newStatus).subscribe({
+      next: (updated) => {
+        this.submission.set(updated);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Updated',
+          detail: `Status changed to ${newStatus}.`,
+        });
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to update status.',
+        });
+      },
     });
   }
 

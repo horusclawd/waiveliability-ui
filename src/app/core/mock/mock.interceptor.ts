@@ -1,4 +1,4 @@
-import { HttpInterceptorFn, HttpResponse } from '@angular/common/http';
+import { HttpInterceptorFn, HttpResponse, HttpHeaders } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { Form, FormField, FormSummary, PageResponse } from '../../features/forms/form.model';
@@ -77,7 +77,63 @@ const mockFormDetails = new Map<string, Form>([
 
 // ─── Submissions mock data ────────────────────────────────────────────────────
 
-let mockSubmissions: any[] = [];
+let mockSubmissions: any[] = [
+  {
+    id: 'sub-001',
+    formId: 'form-001',
+    submitterName: 'Alice Johnson',
+    submitterEmail: 'alice@example.com',
+    formData: { 'Full Name': 'Alice Johnson', 'Email': 'alice@example.com', 'Signature': 'Alice Johnson' },
+    signatureUrl: null,
+    pdfUrl: 'https://placehold.co/800x1100?text=Alice+Waiver+PDF',
+    status: 'pending',
+    submittedAt: '2026-02-10T14:30:00Z',
+  },
+  {
+    id: 'sub-002',
+    formId: 'form-001',
+    submitterName: 'Bob Smith',
+    submitterEmail: 'bob@example.com',
+    formData: { 'Full Name': 'Bob Smith', 'Email': 'bob@example.com', 'Signature': 'Bob Smith' },
+    signatureUrl: null,
+    pdfUrl: 'https://placehold.co/800x1100?text=Bob+Waiver+PDF',
+    status: 'reviewed',
+    submittedAt: '2026-02-12T09:15:00Z',
+  },
+  {
+    id: 'sub-003',
+    formId: 'form-001',
+    submitterName: 'Carol Davis',
+    submitterEmail: 'carol@example.com',
+    formData: { 'Full Name': 'Carol Davis', 'Email': 'carol@example.com', 'Signature': 'Carol Davis' },
+    signatureUrl: null,
+    pdfUrl: 'https://placehold.co/800x1100?text=Carol+Waiver+PDF',
+    status: 'archived',
+    submittedAt: '2026-02-05T16:45:00Z',
+  },
+  {
+    id: 'sub-004',
+    formId: 'form-002',
+    submitterName: 'Dan Wilson',
+    submitterEmail: 'dan@example.com',
+    formData: { 'Full Name': 'Dan Wilson', 'I agree to the terms': true },
+    signatureUrl: null,
+    pdfUrl: 'https://placehold.co/800x1100?text=Dan+Release+PDF',
+    status: 'pending',
+    submittedAt: '2026-02-18T11:00:00Z',
+  },
+  {
+    id: 'sub-005',
+    formId: 'form-001',
+    submitterName: 'Eve Martinez',
+    submitterEmail: 'eve@example.com',
+    formData: { 'Full Name': 'Eve Martinez', 'Email': 'eve@example.com', 'Signature': 'Eve Martinez' },
+    signatureUrl: null,
+    pdfUrl: null,
+    status: 'pending',
+    submittedAt: '2026-02-19T08:20:00Z',
+  },
+];
 
 // ─── End submissions mock data ────────────────────────────────────────────────
 
@@ -419,6 +475,37 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
   // ─── End templates routes ──────────────────────────────────────────────────
 
   // ─── Submissions admin routes ─────────────────────────────────────────────
+
+  // GET /admin/submissions/export (CSV) — must come before the general GET list
+  if (method === 'GET' && url.includes('/admin/submissions/export')) {
+    if (!mockSession) return unauthorized();
+    const csv = [
+      'id,form_id,submitter_name,submitter_email,status,submitted_at',
+      ...mockSubmissions.map(s =>
+        `${s.id},${s.formId},${s.submitterName ?? ''},${s.submitterEmail ?? ''},${s.status},${s.submittedAt}`
+      )
+    ].join('\n');
+    return of(new HttpResponse({ body: csv, status: 200, headers: new HttpHeaders({ 'Content-Type': 'text/csv' }) })).pipe(delay(300));
+  }
+
+  // PATCH /admin/submissions/:id/status
+  if (method === 'PATCH' && /\/admin\/submissions\/[^/?]+\/status$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const id = url.split('/admin/submissions/')[1].split('/status')[0];
+    const body = req.body as { status: string };
+    const idx = mockSubmissions.findIndex(s => s.id === id);
+    if (idx === -1) return respond(null, 404);
+    mockSubmissions[idx] = { ...mockSubmissions[idx], status: body.status };
+    return respond(mockSubmissions[idx]);
+  }
+
+  // DELETE /admin/submissions/:id
+  if (method === 'DELETE' && /\/admin\/submissions\/[^/?]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const id = url.split('/admin/submissions/')[1].split('?')[0];
+    mockSubmissions = mockSubmissions.filter(s => s.id !== id);
+    return respond(null, 204);
+  }
 
   // GET /admin/submissions (list)
   if (method === 'GET' && url.includes('/admin/submissions') && /\/admin\/submissions(\?.*)?$/.test(url)) {
