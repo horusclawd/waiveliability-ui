@@ -19,6 +19,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { FormService } from '../form.service';
 import { FormSummary } from '../form.model';
 import { TenantService } from '../../../core/tenant/tenant.service';
+import { ImportDialogComponent } from '../import-dialog/import-dialog.component';
 
 @Component({
   selector: 'app-form-list',
@@ -37,6 +38,7 @@ import { TenantService } from '../../../core/tenant/tenant.service';
     ToolbarModule,
     ProgressSpinnerModule,
     TooltipModule,
+    ImportDialogComponent,
   ],
   providers: [MessageService, ConfirmationService],
   template: `
@@ -50,6 +52,13 @@ import { TenantService } from '../../../core/tenant/tenant.service';
           <h2 class="m-0 text-xl font-semibold">Forms</h2>
         </ng-template>
         <ng-template #end>
+          <p-button
+            label="Import"
+            icon="pi pi-upload"
+            severity="secondary"
+            class="mr-2"
+            (onClick)="importDialogVisible = true"
+          />
           <p-button
             label="New Form"
             icon="pi pi-plus"
@@ -195,11 +204,17 @@ import { TenantService } from '../../../core/tenant/tenant.service';
           <p-button label="Create" icon="pi pi-check" [loading]="creating()" (onClick)="submitCreate()" />
         </ng-template>
       </p-dialog>
+
+      <app-import-dialog
+        [(visible)]="importDialogVisible"
+        (formCreated)="onImportFormCreated()"
+      />
     </div>
   `,
 })
 export class FormListComponent implements OnInit {
   createDialogVisible = false;
+  importDialogVisible = false;
   newFormName = '';
   newFormDescription = '';
   nameError = false;
@@ -288,6 +303,11 @@ export class FormListComponent implements OnInit {
 
   closeCreateDialog() {
     this.createDialogVisible = false;
+  }
+
+  onImportFormCreated() {
+    this.formService.loadForms().subscribe();
+    this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Form imported successfully!' });
   }
 
   submitCreate() {
