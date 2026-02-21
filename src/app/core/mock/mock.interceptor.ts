@@ -15,14 +15,14 @@ const MOCK_USER = {
 // ─── Forms mock data ──────────────────────────────────────────────────────────
 
 const SEED_FORM_1_FIELDS: FormField[] = [
-  { id: 'f001-f1', fieldType: 'text',  label: 'Full Name',  placeholder: 'Enter your name',  required: true,  fieldOrder: 0, options: null },
-  { id: 'f001-f2', fieldType: 'email', label: 'Email',      placeholder: 'Enter your email', required: true,  fieldOrder: 1, options: null },
-  { id: 'f001-f3', fieldType: 'text',  label: 'Signature',  placeholder: 'Type your signature', required: true, fieldOrder: 2, options: null },
+  { id: 'f001-f1', fieldType: 'text',  label: 'Full Name',  placeholder: 'Enter your name',  required: true,  fieldOrder: 0, options: null, content: null },
+  { id: 'f001-f2', fieldType: 'email', label: 'Email',      placeholder: 'Enter your email', required: true,  fieldOrder: 1, options: null, content: null },
+  { id: 'f001-f3', fieldType: 'text',  label: 'Signature',  placeholder: 'Type your signature', required: true, fieldOrder: 2, options: null, content: null },
 ];
 
 const SEED_FORM_2_FIELDS: FormField[] = [
-  { id: 'f002-f1', fieldType: 'text',     label: 'Full Name', placeholder: 'Enter your name', required: true,  fieldOrder: 0, options: null },
-  { id: 'f002-f2', fieldType: 'checkbox', label: 'I agree to the terms', placeholder: null,  required: true,  fieldOrder: 1, options: null },
+  { id: 'f002-f1', fieldType: 'text',     label: 'Full Name', placeholder: 'Enter your name', required: true,  fieldOrder: 0, options: null, content: null },
+  { id: 'f002-f2', fieldType: 'checkbox', label: 'I agree to the terms', placeholder: null,  required: true,  fieldOrder: 1, options: null, content: null },
 ];
 
 let mockForms: FormSummary[] = [
@@ -148,27 +148,27 @@ const MOCK_TEMPLATES: import('../../features/templates/template.model').Template
 
 const MOCK_TEMPLATE_DETAILS = new Map([
   ['tpl-001', { id: 'tpl-001', name: 'Basic Waiver', description: 'Simple liability waiver with name, email and signature', category: 'waiver', isPremium: false, usageCount: 142, fields: [
-    { id: 'tf-001-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null },
-    { id: 'tf-001-2', fieldType: 'email', label: 'Email Address', placeholder: 'Enter your email', required: true, fieldOrder: 1, options: null },
-    { id: 'tf-001-3', fieldType: 'text', label: 'Signature', placeholder: 'Type your full name as signature', required: true, fieldOrder: 2, options: null },
+    { id: 'tf-001-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null, content: null },
+    { id: 'tf-001-2', fieldType: 'email', label: 'Email Address', placeholder: 'Enter your email', required: true, fieldOrder: 1, options: null, content: null },
+    { id: 'tf-001-3', fieldType: 'text', label: 'Signature', placeholder: 'Type your full name as signature', required: true, fieldOrder: 2, options: null, content: null },
   ], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
   ['tpl-002', { id: 'tpl-002', name: 'Activity Release', description: 'Activity participation release with emergency contact', category: 'waiver', isPremium: false, usageCount: 89, fields: [
-    { id: 'tf-002-1', fieldType: 'text', label: 'Participant Name', placeholder: 'Full name', required: true, fieldOrder: 0, options: null },
-    { id: 'tf-002-2', fieldType: 'email', label: 'Email', placeholder: 'Email address', required: true, fieldOrder: 1, options: null },
-    { id: 'tf-002-3', fieldType: 'text', label: 'Emergency Contact', placeholder: 'Name and phone number', required: true, fieldOrder: 2, options: null },
-    { id: 'tf-002-4', fieldType: 'checkbox', label: 'I agree to the terms and conditions', placeholder: null, required: true, fieldOrder: 3, options: null },
+    { id: 'tf-002-1', fieldType: 'text', label: 'Participant Name', placeholder: 'Full name', required: true, fieldOrder: 0, options: null, content: null },
+    { id: 'tf-002-2', fieldType: 'email', label: 'Email', placeholder: 'Email address', required: true, fieldOrder: 1, options: null, content: null },
+    { id: 'tf-002-3', fieldType: 'text', label: 'Emergency Contact', placeholder: 'Name and phone number', required: true, fieldOrder: 2, options: null, content: null },
+    { id: 'tf-002-4', fieldType: 'checkbox', label: 'I agree to the terms and conditions', placeholder: null, required: true, fieldOrder: 3, options: null, content: null },
   ], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
   ['tpl-003', { id: 'tpl-003', name: 'NDA Agreement', description: 'Non-disclosure agreement with terms checkbox', category: 'legal', isPremium: true, usageCount: 56, fields: [
-    { id: 'tf-003-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null },
-    { id: 'tf-003-2', fieldType: 'text', label: 'Company Name', placeholder: 'Your company or organization', required: false, fieldOrder: 1, options: null },
-    { id: 'tf-003-3', fieldType: 'email', label: 'Email', placeholder: 'Enter your email', required: true, fieldOrder: 2, options: null },
-    { id: 'tf-003-4', fieldType: 'checkbox', label: 'I agree to the terms of this NDA', placeholder: null, required: true, fieldOrder: 3, options: null },
+    { id: 'tf-003-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null, content: null },
+    { id: 'tf-003-2', fieldType: 'text', label: 'Company Name', placeholder: 'Your company or organization', required: false, fieldOrder: 1, options: null, content: null },
+    { id: 'tf-003-3', fieldType: 'email', label: 'Email', placeholder: 'Enter your email', required: true, fieldOrder: 2, options: null, content: null },
+    { id: 'tf-003-4', fieldType: 'checkbox', label: 'I agree to the terms of this NDA', placeholder: null, required: true, fieldOrder: 3, options: null, content: null },
   ], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
   ['tpl-004', { id: 'tpl-004', name: 'Photo Release', description: 'Photo and media release consent form', category: 'consent', isPremium: false, usageCount: 73, fields: [
-    { id: 'tf-004-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null },
-    { id: 'tf-004-2', fieldType: 'email', label: 'Email', placeholder: 'Enter your email', required: true, fieldOrder: 1, options: null },
-    { id: 'tf-004-3', fieldType: 'checkbox', label: 'I grant permission to use my photo/likeness', placeholder: null, required: true, fieldOrder: 2, options: null },
-    { id: 'tf-004-4', fieldType: 'text', label: 'Signature', placeholder: 'Type your full name', required: true, fieldOrder: 3, options: null },
+    { id: 'tf-004-1', fieldType: 'text', label: 'Full Name', placeholder: 'Enter your full name', required: true, fieldOrder: 0, options: null, content: null },
+    { id: 'tf-004-2', fieldType: 'email', label: 'Email', placeholder: 'Enter your email', required: true, fieldOrder: 1, options: null, content: null },
+    { id: 'tf-004-3', fieldType: 'checkbox', label: 'I grant permission to use my photo/likeness', placeholder: null, required: true, fieldOrder: 2, options: null, content: null },
+    { id: 'tf-004-4', fieldType: 'text', label: 'Signature', placeholder: 'Type your full name', required: true, fieldOrder: 3, options: null, content: null },
   ], createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z' }],
 ]);
 
