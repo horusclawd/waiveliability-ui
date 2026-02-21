@@ -675,6 +675,48 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
 
   // ─── End forms routes ──────────────────────────────────────────────────────
 
+  // ─── Billing routes ───────────────────────────────────────────────────────
+
+  // GET /admin/billing/subscription
+  if (method === 'GET' && url.endsWith('/admin/billing/subscription')) {
+    if (!mockSession) return unauthorized();
+    const subscription = {
+      plan: mockBusiness.plan,
+      status: mockBusiness.plan === 'free' ? null : 'active',
+      currentPeriodEnd: mockBusiness.plan === 'free' ? null : '2026-03-20T00:00:00Z',
+      cancelAtPeriodEnd: false,
+    };
+    return respond(subscription);
+  }
+
+  // GET /admin/billing/limits
+  if (method === 'GET' && url.endsWith('/admin/billing/limits')) {
+    if (!mockSession) return unauthorized();
+    const limits = {
+      forms: { used: 5, limit: mockBusiness.plan === 'free' ? 3 : mockBusiness.plan === 'basic' ? 10 : -1 },
+      submissions: { used: 100, limit: mockBusiness.plan === 'free' ? 100 : mockBusiness.plan === 'basic' ? 1000 : -1 },
+    };
+    return respond(limits);
+  }
+
+  // POST /admin/billing/checkout
+  if (method === 'POST' && url.endsWith('/admin/billing/checkout')) {
+    if (!mockSession) return unauthorized();
+    const body = req.body as { planId: string };
+    // Simulate redirecting to Stripe checkout
+    const checkoutUrl = `https://checkout.stripe.com/mock?plan=${body.planId}`;
+    return respond({ url: checkoutUrl });
+  }
+
+  // POST /admin/billing/portal
+  if (method === 'POST' && url.endsWith('/admin/billing/portal')) {
+    if (!mockSession) return unauthorized();
+    const portalUrl = 'https://billing.stripe.com/mock/portal';
+    return respond({ url: portalUrl });
+  }
+
+  // ─── End billing routes ─────────────────────────────────────────────────────
+
   // Pass through anything not matched (shouldn't happen in mock mode)
   return next(req);
 };
