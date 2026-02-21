@@ -15,9 +15,10 @@ const MOCK_USER = {
 // ─── Forms mock data ──────────────────────────────────────────────────────────
 
 const SEED_FORM_1_FIELDS: FormField[] = [
-  { id: 'f001-f1', fieldType: 'text',  label: 'Full Name',  placeholder: 'Enter your name',  required: true,  fieldOrder: 0, options: null, content: null },
-  { id: 'f001-f2', fieldType: 'email', label: 'Email',      placeholder: 'Enter your email', required: true,  fieldOrder: 1, options: null, content: null },
-  { id: 'f001-f3', fieldType: 'text',  label: 'Signature',  placeholder: 'Type your signature', required: true, fieldOrder: 2, options: null, content: null },
+  { id: 'f001-f1', fieldType: 'content', label: 'Legal Waiver Terms', placeholder: null, required: false, fieldOrder: 0, options: null, content: 'This is a legal waiver form. By signing below, you agree to release the company from any liability for injuries or damages that may occur during the event.' },
+  { id: 'f001-f2', fieldType: 'text',  label: 'Full Name',  placeholder: 'Enter your name',  required: true,  fieldOrder: 1, options: null, content: null },
+  { id: 'f001-f3', fieldType: 'email', label: 'Email',      placeholder: 'Enter your email', required: true,  fieldOrder: 2, options: null, content: null },
+  { id: 'f001-f4', fieldType: 'text',  label: 'Signature',  placeholder: 'Type your signature', required: true, fieldOrder: 3, options: null, content: null },
 ];
 
 const SEED_FORM_2_FIELDS: FormField[] = [
@@ -31,7 +32,7 @@ let mockForms: FormSummary[] = [
     name: 'Customer Waiver',
     description: 'Standard customer waiver form',
     status: 'published',
-    fieldCount: 3,
+    fieldCount: 4,
     createdAt: '2026-01-10T10:00:00Z',
     updatedAt: '2026-01-15T12:00:00Z',
   },
