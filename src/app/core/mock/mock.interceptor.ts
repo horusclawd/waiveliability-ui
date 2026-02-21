@@ -248,6 +248,58 @@ const registeredUsers: Array<{ email: string; password: string; user: typeof MOC
   { email: 'demo@example.com', password: 'password', user: MOCK_USER },
 ];
 
+// ─── Team mock data ──────────────────────────────────────────────────────────
+
+let mockTeamMembers: Array<{
+  userId: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'editor' | 'viewer';
+  createdAt: string;
+}> = [
+  {
+    userId: 'user-001',
+    name: 'Demo User',
+    email: 'demo@example.com',
+    role: 'admin',
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    userId: 'user-002',
+    name: 'Jane Editor',
+    email: 'jane@example.com',
+    role: 'editor',
+    createdAt: '2026-01-15T00:00:00Z',
+  },
+  {
+    userId: 'user-003',
+    name: 'Bob Viewer',
+    email: 'bob@example.com',
+    role: 'viewer',
+    createdAt: '2026-02-01T00:00:00Z',
+  },
+];
+
+let mockTeamInvites: Array<{
+  id: string;
+  email: string;
+  role: 'admin' | 'editor' | 'viewer';
+  invitedBy: string;
+  invitedAt: string;
+  expiresAt: string;
+}> = [
+  {
+    id: 'invite-001',
+    email: 'newuser@example.com',
+    role: 'editor',
+    invitedBy: 'Demo User',
+    invitedAt: '2026-02-10T10:00:00Z',
+    expiresAt: '2026-02-17T10:00:00Z',
+  },
+];
+
+// ─── End team mock data ──────────────────────────────────────────────────────
+
 function makeTokenResponse(user: typeof MOCK_USER) {
   const token = `mock-token-${Date.now()}`;
   mockSession = { accessToken: token, user };
@@ -926,6 +978,69 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   // ─── End analytics routes ─────────────────────────────────────────────────
+
+  // ─── Team management routes ─────────────────────────────────────────────
+
+  // GET /admin/team - list team members
+  if (method === 'GET' && url.endsWith('/admin/team')) {
+    if (!mockSession) return unauthorized();
+    return respond([...mockTeamMembers]);
+  }
+
+  // POST /admin/team/invite - create invite
+  if (method === 'POST' && url.endsWith('/admin/team/invite')) {
+    if (!mockSession) return unauthorized();
+    const body = req.body as { email: string; role: 'admin' | 'editor' | 'viewer' };
+    const newInvite = {
+      id: `invite-${Date.now()}`,
+      email: body.email,
+      role: body.role,
+      invitedBy: mockSession.user.name,
+      invitedAt: nowIso(),
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    };
+    mockTeamInvites.push(newInvite);
+    return respond(newInvite, 201);
+  }
+
+  // GET /admin/team/invites - list pending invites
+  if (method === 'GET' && url.endsWith('/admin/team/invites')) {
+    if (!mockSession) return unauthorized();
+    return respond([...mockTeamInvites]);
+  }
+
+  // DELETE /admin/team/invites/{id} - cancel invite
+  if (method === 'DELETE' && /\/admin\/team\/invites\/[^/]+$/.test(url)) {
+    if (!mockSession) return unauthorized();
+    const inviteId = url.split('/admin/team/invites/')[1];
+    const idx = mockTeamInvites.findIndex(i => i.id === inviteId);
+    if (idx === -1) return respond(null, 404);
+    mockTeamInvites.splice(idx, 1);
+    return respond(null, 204);
+  }
+
+  // PATCH /admin/team/{userId} - update member role
+  if (method === 'PATCH' && /\/admin\/team\/[^/]+$/.test(url) && !url.includes('/invites')) {
+    if (!mockSession) return unauthorized();
+    const userId = url.split('/admin/team/')[1];
+    const body = req.body as { role: 'admin' | 'editor' | 'viewer' };
+    const memberIdx = mockTeamMembers.findIndex(m => m.userId === userId);
+    if (memberIdx === -1) return respond(null, 404);
+    mockTeamMembers[memberIdx] = { ...mockTeamMembers[memberIdx], role: body.role };
+    return respond(mockTeamMembers[memberIdx]);
+  }
+
+  // DELETE /admin/team/{userId} - remove member
+  if (method === 'DELETE' && /\/admin\/team\/[^/]+$/.test(url) && !url.includes('/invites')) {
+    if (!mockSession) return unauthorized();
+    const userId = url.split('/admin/team/')[1];
+    const idx = mockTeamMembers.findIndex(m => m.userId === userId);
+    if (idx === -1) return respond(null, 404);
+    mockTeamMembers.splice(idx, 1);
+    return respond(null, 204);
+  }
+
+  // ─── End team management routes ─────────────────────────────────────────
 
   // Pass through anything not matched (shouldn't happen in mock mode)
   return next(req);

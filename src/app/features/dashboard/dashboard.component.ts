@@ -8,7 +8,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 
-import { AnalyticsService, AnalyticsOverview, RecentSubmission } from '../analytics.service';
+import { AnalyticsService, AnalyticsOverview, RecentSubmission } from '../analytics/analytics.service';
 
 type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contrast' | undefined;
 
@@ -184,21 +184,22 @@ export class DashboardComponent implements OnInit {
   private loadData() {
     this.loading.set(true);
     this.analyticsService.getOverview().subscribe({
-      next: (data) => {
+      next: (data: AnalyticsOverview) => {
         this.loading.set(false);
         this.setupCharts(data);
       },
-      error: (err) => {
+      error: (err: unknown) => {
         this.loading.set(false);
-        this.error.set(err?.error?.title ?? 'Failed to load dashboard data');
+        this.error.set('Failed to load analytics data');
       },
     });
   }
 
   private setupCharts(data: AnalyticsOverview) {
     // Line chart for submissions by day
-    const trendDates = data.submissionsByDay.map((d) => d.date);
-    const trendCounts = data.submissionsByDay.map((d) => d.count);
+    const dailyData: { date: string; count: number }[] = data.submissionsByDay;
+    const trendDates = dailyData.map((d: { date: string; count: number }) => d.date);
+    const trendCounts = dailyData.map((d: { date: string; count: number }) => d.count);
 
     this.submissionsTrendChart.set({
       tooltip: {
@@ -246,8 +247,9 @@ export class DashboardComponent implements OnInit {
     });
 
     // Bar chart for submissions by status
-    const statusLabels = data.submissionsByStatus.map((s) => s.status.charAt(0).toUpperCase() + s.status.slice(1));
-    const statusCounts = data.submissionsByStatus.map((s) => s.count);
+    const statusData: { status: string; count: number }[] = data.submissionsByStatus;
+    const statusLabels = statusData.map((s) => s.status.charAt(0).toUpperCase() + s.status.slice(1));
+    const statusCounts = statusData.map((s) => s.count);
 
     this.statusChart.set({
       tooltip: {
@@ -285,7 +287,6 @@ export class DashboardComponent implements OnInit {
               return colors[statusLabels[params.dataIndex]] || '#3b82f6';
             },
           },
-          barRadius: [4, 4, 0, 0],
         },
       ],
     });

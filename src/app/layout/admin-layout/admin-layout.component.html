@@ -35,16 +35,18 @@
     <div class="sidebar-bottom">
       <ul class="nav-list">
         @for (item of bottomNavItems; track item.routerLink) {
-          <li>
-            <a
-              [routerLink]="item.routerLink"
-              routerLinkActive="active"
-              class="nav-item"
-            >
-              <i [class]="item.icon + ' nav-icon'"></i>
-              <span class="nav-label">{{ item.label }}</span>
-            </a>
-          </li>
+          @if (item.label !== 'Team' || isAdmin()) {
+            <li>
+              <a
+                [routerLink]="item.routerLink"
+                routerLinkActive="active"
+                class="nav-item"
+              >
+                <i [class]="item.icon + ' nav-icon'"></i>
+                <span class="nav-label">{{ item.label }}</span>
+              </a>
+            </li>
+          }
         }
       </ul>
     </div>
