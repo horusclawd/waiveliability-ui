@@ -228,8 +228,16 @@ let mockBusiness = {
     logoUrl: null as string | null,
     hidePoweredBy: false,
   },
+  notificationsEnabled: false,
+  notificationEmail: null as string | null,
   createdAt: '2026-01-01T00:00:00Z',
   updatedAt: '2026-01-01T00:00:00Z',
+};
+
+// In-memory notification settings (separate from business for cleaner API)
+let mockNotificationSettings = {
+  notificationsEnabled: false,
+  notificationEmail: null as string | null,
 };
 
 // In-memory session state for the mock
@@ -330,7 +338,12 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     if (!mockSession) {
       return unauthorized();
     }
-    return respond({ ...mockBusiness, branding: { ...mockBusiness.branding } });
+    return respond({
+      ...mockBusiness,
+      branding: { ...mockBusiness.branding },
+      notificationsEnabled: mockBusiness.notificationsEnabled,
+      notificationEmail: mockBusiness.notificationEmail,
+    });
   }
 
   // PUT /admin/business
@@ -405,6 +418,34 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
       updatedAt: nowIso(),
     };
     return respond(null, 204);
+  }
+
+  // GET /admin/settings/notifications
+  if (method === 'GET' && url.endsWith('/admin/settings/notifications')) {
+    if (!mockSession) {
+      return unauthorized();
+    }
+    return respond({ ...mockNotificationSettings });
+  }
+
+  // PUT /admin/settings/notifications
+  if (method === 'PUT' && url.endsWith('/admin/settings/notifications')) {
+    if (!mockSession) {
+      return unauthorized();
+    }
+    const body = req.body as { notificationsEnabled: boolean; notificationEmail: string | null };
+    mockNotificationSettings = {
+      notificationsEnabled: body.notificationsEnabled ?? mockNotificationSettings.notificationsEnabled,
+      notificationEmail: body.notificationEmail ?? mockNotificationSettings.notificationEmail,
+    };
+    // Also update the business object to reflect changes
+    mockBusiness = {
+      ...mockBusiness,
+      notificationsEnabled: mockNotificationSettings.notificationsEnabled,
+      notificationEmail: mockNotificationSettings.notificationEmail,
+      updatedAt: nowIso(),
+    };
+    return respond({ ...mockNotificationSettings });
   }
 
   // GET /public/{tenantSlug}/branding — must come BEFORE the public forms handlers
