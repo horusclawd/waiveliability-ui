@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'email' | 'number' | 'date' | 'textarea' | 'checkbox' | 'select';
+export type FieldType = 'text' | 'email' | 'number' | 'date' | 'textarea' | 'checkbox' | 'select' | 'content';
 export type FormStatus = 'draft' | 'published';
 
 export interface FormFieldOption {
@@ -14,6 +14,7 @@ export interface FormField {
   required: boolean;
   fieldOrder: number;
   options: FormFieldOption[] | null;
+  content: string | null;
 }
 
 export interface FormSummary {

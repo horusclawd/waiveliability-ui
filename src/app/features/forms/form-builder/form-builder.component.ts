@@ -43,6 +43,7 @@ const PALETTE_ITEMS: PaletteItem[] = [
   { type: 'textarea', label: 'Textarea', icon: 'pi pi-align-left' },
   { type: 'checkbox', label: 'Checkbox', icon: 'pi pi-check-square' },
   { type: 'select',   label: 'Select',   icon: 'pi pi-list' },
+  { type: 'content',  label: 'Content',  icon: 'pi pi-file' },
 ];
 
 function generateId(): string {
@@ -329,8 +330,8 @@ function generateId(): string {
                     />
                   </div>
 
-                  <!-- Placeholder (not for checkbox) -->
-                  @if (field.fieldType !== 'checkbox') {
+                  <!-- Placeholder (not for checkbox or content) -->
+                  @if (field.fieldType !== 'checkbox' && field.fieldType !== 'content') {
                     <div class="flex flex-column gap-1">
                       <label class="font-medium text-sm">Placeholder</label>
                       <input
@@ -342,14 +343,32 @@ function generateId(): string {
                     </div>
                   }
 
-                  <!-- Required toggle -->
-                  <div class="flex align-items-center gap-2">
-                    <p-toggleswitch
-                      [ngModel]="field.required"
-                      (ngModelChange)="updateFieldProp(field.id, 'required', $event)"
-                    />
-                    <label class="font-medium text-sm">Required</label>
-                  </div>
+                  <!-- Required toggle (not for content type) -->
+                  @if (field.fieldType !== 'content') {
+                    <div class="flex align-items-center gap-2">
+                      <p-toggleswitch
+                        [ngModel]="field.required"
+                        (ngModelChange)="updateFieldProp(field.id, 'required', $event)"
+                      />
+                      <label class="font-medium text-sm">Required</label>
+                    </div>
+                  }
+
+                  <!-- Content text (content type only) -->
+                  @if (field.fieldType === 'content') {
+                    <div class="flex flex-column gap-1">
+                      <label class="font-medium text-sm">Content Text</label>
+                      <textarea
+                        pTextarea
+                        [ngModel]="field.content"
+                        (ngModelChange)="updateFieldProp(field.id, 'content', $event)"
+                        placeholder="Enter legal text, terms, or other content to display..."
+                        rows="6"
+                        style="width: 100%; resize: vertical"
+                      ></textarea>
+                      <small class="text-color-secondary">This text will be displayed to users but cannot be edited.</small>
+                    </div>
+                  }
 
                   <!-- Options (select type only) -->
                   @if (field.fieldType === 'select') {
@@ -479,6 +498,7 @@ export class FormBuilderComponent implements OnInit {
       required: false,
       fieldOrder: this.fields().length,
       options: type === 'select' ? [] : null,
+      content: type === 'content' ? '' : null,
     };
     this.fields.update((f) => [...f, newField]);
     this.selectedField.set(newField);

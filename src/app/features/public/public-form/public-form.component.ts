@@ -167,6 +167,13 @@ interface PublicBranding {
                     />
                   }
 
+                  <!-- Content field (read-only legal text) -->
+                  @else if (field.fieldType === 'content') {
+                    <div class="content-field p-3 surface-50 border-round" style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6">
+                      {{ field.content || '' }}
+                    </div>
+                  }
+
                   <!-- Validation error -->
                   @if (errors()[field.id]) {
                     <small class="text-red-500">{{ errors()[field.id] }}</small>
@@ -316,6 +323,8 @@ export class PublicFormComponent implements OnInit {
     const answers = this.answers();
 
     for (const field of this.sortedFields()) {
+      // Content fields are display-only, skip validation
+      if (field.fieldType === 'content') continue;
       if (!field.required) continue;
 
       const val = answers[field.id];
