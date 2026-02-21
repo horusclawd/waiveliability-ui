@@ -217,6 +217,8 @@ export class FormListComponent implements OnInit {
 
   ngOnInit() {
     this.loading.set(true);
+    // Load tenant to get slug for public link
+    this.tenantService.load().subscribe();
     this.formService.loadForms().subscribe({
       next: () => this.loading.set(false),
       error: () => {
