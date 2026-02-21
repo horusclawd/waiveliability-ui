@@ -415,6 +415,28 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     return respond(submission, 201);
   }
 
+  // GET /public/{slug}/submissions/{submissionId} — get submission with PDF
+  if (method === 'GET' && url.includes('/public/') && url.includes('/submissions/')) {
+    const match = url.match(/\/public\/([^/]+)\/submissions\/([^/]+)/);
+    const submissionId = match ? match[2] : null;
+    const submission = submissionId ? mockSubmissions.find(s => s.id === submissionId) : null;
+    if (!submission) {
+      // Create a mock submission with PDF ready for demo
+      return respond({
+        id: submissionId,
+        formId: 'mock-form-id',
+        submitterName: 'Test User',
+        submitterEmail: 'test@example.com',
+        formData: {},
+        signatureUrl: null,
+        pdfUrl: 'https://placehold.co/800x1100?text=Submission+PDF',
+        status: 'pending',
+        submittedAt: new Date().toISOString(),
+      });
+    }
+    return respond(submission);
+  }
+
   // ─── Templates routes ─────────────────────────────────────────────────────
 
   // GET /admin/templates  (list, with optional ?category=)
