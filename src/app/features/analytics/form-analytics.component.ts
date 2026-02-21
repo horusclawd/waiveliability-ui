@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
 import { ButtonModule } from 'primeng/button';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
@@ -22,6 +23,7 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
     CardModule,
     TagModule,
     ProgressSpinnerModule,
+    SkeletonModule,
     ButtonModule,
     NgxEchartsModule,
   ],
@@ -35,8 +37,29 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
       </div>
 
       @if (loading()) {
-        <div class="flex justify-content-center p-6">
-          <p-progressSpinner strokeWidth="4" style="width: 48px; height: 48px" />
+        <!-- Skeleton Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <p-card styleClass="stat-card">
+              <div class="flex align-items-center gap-3">
+                <p-skeleton shape="circle" size="3rem" />
+                <div class="flex flex-column gap-1">
+                  <p-skeleton width="6rem" styleClass="mb-2" />
+                  <p-skeleton width="4rem" />
+                </div>
+              </div>
+            </p-card>
+          }
+        </div>
+
+        <!-- Skeleton Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <p-card header="Submission Trend">
+            <p-skeleton width="100%" height="300px" />
+          </p-card>
+          <p-card header="Status Breakdown">
+            <p-skeleton width="100%" height="300px" />
+          </p-card>
         </div>
       } @else if (error()) {
         <p-card>

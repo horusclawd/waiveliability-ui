@@ -7,6 +7,7 @@ import { forkJoin } from 'rxjs';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
@@ -19,6 +20,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { SubmissionService } from '../submission.service';
 import { Submission } from '../submission.model';
+import { EmptyStateComponent } from '../../../core/components/empty-state/empty-state.component';
 
 type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contrast' | undefined;
 
@@ -36,6 +38,7 @@ interface StatusOption {
     TableModule,
     TagModule,
     ProgressSpinnerModule,
+    SkeletonModule,
     CardModule,
     ButtonModule,
     SelectModule,
@@ -44,6 +47,7 @@ interface StatusOption {
     DialogModule,
     ToolbarModule,
     ToastModule,
+    EmptyStateComponent,
   ],
   providers: [MessageService, ConfirmationService],
   template: `
@@ -62,6 +66,7 @@ interface StatusOption {
             icon="pi pi-download"
             severity="secondary"
             (onClick)="downloadCsv()"
+            ariaLabel="Export submissions to CSV"
           />
         </ng-template>
       </p-toolbar>
@@ -104,9 +109,38 @@ interface StatusOption {
       </div>
 
       @if (loading()) {
-        <div class="flex justify-content-center p-6">
-          <p-progressSpinner strokeWidth="4" style="width: 48px; height: 48px" />
+        <!-- Filter bar skeleton -->
+        <div class="flex flex-wrap gap-3 mb-4 align-items-center">
+          <p-skeleton width="10rem" height="2.5rem" />
+          <p-skeleton width="14rem" height="2.5rem" />
+          <p-skeleton width="8rem" height="2.5rem" />
         </div>
+
+        <!-- Table skeleton -->
+        <p-table styleClass="p-datatable-sm" [tableStyle]="{ 'min-width': '60rem' }">
+          <ng-template pTemplate="header">
+            <tr>
+              <th style="width: 3rem"><p-skeleton width="1.5rem" /></th>
+              <th>Submitter Name</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th>Submitted</th>
+              <th style="width: 16rem">Actions</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body">
+            @for (i of [1, 2, 3, 4, 5]; track i) {
+              <tr>
+                <td><p-skeleton width="1.5rem" /></td>
+                <td><p-skeleton width="10rem" /></td>
+                <td><p-skeleton width="12rem" /></td>
+                <td><p-skeleton width="5rem" /></td>
+                <td><p-skeleton width="8rem" /></td>
+                <td><p-skeleton width="12rem" /></td>
+              </tr>
+            }
+          </ng-template>
+        </p-table>
       } @else if (error()) {
         <p-card>
           <div class="text-center p-4">
@@ -115,12 +149,14 @@ interface StatusOption {
           </div>
         </p-card>
       } @else if (submissions().length === 0) {
-        <p-card>
-          <div class="text-center p-6">
-            <i class="pi pi-inbox text-color-secondary" style="font-size: 3rem"></i>
-            <p class="mt-2 text-color-secondary">No submissions found.</p>
-          </div>
-        </p-card>
+        <app-empty-state
+          icon="inbox"
+          title="No submissions found"
+          message="Submissions will appear here once users submit your forms."
+          actionLabel="Go to Forms"
+          actionIcon="pi pi-file-edit"
+          actionCallback={() => router.navigate(['/admin/forms'])"
+        />
       } @else {
         <p-table
           [value]="submissions()"

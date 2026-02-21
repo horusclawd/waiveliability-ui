@@ -43,21 +43,21 @@ interface PublicBranding {
     SignaturePadComponent,
   ],
   template: `
-    <div style="min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; background: var(--surface-ground)">
-      <div style="width: 100%; max-width: 640px">
+    <div class="public-form-container" role="main" aria-label="Form submission">
+      <div class="form-wrapper">
 
         <!-- Loading state -->
         @if (loading()) {
-          <div class="flex justify-content-center align-items-center" style="min-height: 60vh">
-            <p-progressSpinner strokeWidth="4" style="width: 48px; height: 48px" />
+          <div class="loading-container" role="status" aria-live="polite">
+            <p-progressSpinner strokeWidth="4" style="width: 48px; height: 48px" aria-label="Loading form" />
           </div>
         }
 
         <!-- Error state -->
         @if (!loading() && loadError()) {
-          <p-card>
+          <p-card role="alert">
             <div class="flex flex-column align-items-center gap-3 p-4 text-center">
-              <i class="pi pi-exclamation-circle text-orange-500" style="font-size: 3rem"></i>
+              <i class="pi pi-exclamation-circle text-orange-500" style="font-size: 3rem" aria-hidden="true"></i>
               <h2 class="m-0">{{ loadError() }}</h2>
             </div>
           </p-card>
@@ -68,7 +68,7 @@ interface PublicBranding {
           <!-- Tenant header -->
           <div class="text-center mb-4">
             @if (branding()?.logoUrl) {
-              <img [src]="branding()!.logoUrl" alt="Logo" style="max-height: 60px; margin-bottom: 0.75rem" />
+              <img [src]="branding()!.logoUrl" alt="Logo" class="tenant-logo" />
             }
             <div class="text-color-secondary text-sm">{{ branding()?.tenantName || tenantSlug() }}</div>
           </div>
@@ -91,7 +91,7 @@ interface PublicBranding {
                   <label [for]="field.id" class="font-medium text-sm">
                     {{ field.label }}
                     @if (field.required) {
-                      <span class="text-red-500 ml-1">*</span>
+                      <span class="text-red-500 ml-1" aria-label="Required">*</span>
                     }
                   </label>
 
@@ -110,7 +110,8 @@ interface PublicBranding {
                       [ngModel]="answers()[field.id] ?? ''"
                       (ngModelChange)="setAnswer(field.id, $event)"
                       [placeholder]="field.placeholder || ''"
-                      style="width: 100%"
+                      [attr.aria-required]="field.required"
+                      class="w-full"
                     />
                   }
 
@@ -123,7 +124,8 @@ interface PublicBranding {
                       [ngModel]="answers()[field.id] ?? ''"
                       (ngModelChange)="setAnswer(field.id, $event)"
                       [placeholder]="field.placeholder || ''"
-                      style="width: 100%"
+                      [attr.aria-required]="field.required"
+                      class="w-full"
                     />
                   }
 
@@ -136,7 +138,9 @@ interface PublicBranding {
                       [ngModel]="answers()[field.id] ?? ''"
                       (ngModelChange)="setAnswer(field.id, $event)"
                       [placeholder]="field.placeholder || ''"
-                      style="width: 100%; resize: vertical"
+                      [attr.aria-required]="field.required"
+                      class="w-full"
+                      style="resize: vertical"
                     ></textarea>
                   }
 
@@ -148,6 +152,7 @@ interface PublicBranding {
                         [binary]="true"
                         [ngModel]="answers()[field.id] ?? false"
                         (ngModelChange)="setAnswer(field.id, $event)"
+                        [attr.aria-required]="field.required"
                       />
                       <label [for]="field.id" class="cursor-pointer text-sm">{{ field.label }}</label>
                     </div>
@@ -163,19 +168,21 @@ interface PublicBranding {
                       [ngModel]="answers()[field.id] ?? null"
                       (ngModelChange)="setAnswer(field.id, $event)"
                       [placeholder]="field.placeholder || 'Select an option'"
+                      [attr.aria-required]="field.required"
                       styleClass="w-full"
+                      appendTo="body"
                     />
                   }
 
                   <!-- Content field (read-only legal text with rich formatting) -->
                   @else if (field.fieldType === 'content') {
-                    <div class="content-field p-3 surface-50 border-round" style="font-size: 0.95rem; line-height: 1.6" [innerHTML]="field.content || ''">
+                    <div class="content-field p-3 surface-50 border-round" style="font-size: 0.95rem; line-height: 1.6" [innerHTML]="field.content || ''" role="document">
                     </div>
                   }
 
                   <!-- Validation error -->
                   @if (errors()[field.id]) {
-                    <small class="text-red-500">{{ errors()[field.id] }}</small>
+                    <small class="text-red-500" role="alert" [attr.aria-live]="'polite'">{{ errors()[field.id] }}</small>
                   }
                 </div>
               </ng-container>
@@ -185,7 +192,7 @@ interface PublicBranding {
 
             <!-- Submit error -->
             @if (submitError()) {
-              <p-message severity="error" [text]="submitError()!" styleClass="w-full mb-3" />
+              <p-message severity="error" [text]="submitError()!" styleClass="w-full mb-3" role="alert" />
             }
 
             <!-- Submit button -->
@@ -194,7 +201,9 @@ interface PublicBranding {
                 label="Submit"
                 icon="pi pi-send"
                 [loading]="submitting()"
+                [disabled]="submitting()"
                 (onClick)="onSubmit()"
+                aria-label="Submit form"
               />
             </div>
 
@@ -209,6 +218,67 @@ interface PublicBranding {
       </div>
     </div>
   `,
+  styles: [`
+    .public-form-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1rem;
+      background: var(--surface-ground);
+    }
+
+    .form-wrapper {
+      width: 100%;
+      max-width: 640px;
+    }
+
+    .loading-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 60vh;
+    }
+
+    .tenant-logo {
+      max-height: 60px;
+      margin-bottom: 0.75rem;
+      width: auto;
+      height: auto;
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 576px) {
+      .public-form-container {
+        padding: 0.5rem;
+      }
+
+      .form-wrapper {
+        max-width: 100%;
+      }
+
+      .tenant-logo {
+        max-height: 40px;
+      }
+
+      :host ::ng-deep .p-card-body {
+        padding: 1rem;
+      }
+
+      :host ::ng-deep .p-inputtext,
+      :host ::ng-deep .p-textarea,
+      :host ::ng-deep .p-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+      }
+    }
+
+    /* Tablet responsiveness */
+    @media (min-width: 577px) and (max-width: 768px) {
+      .form-wrapper {
+        max-width: 90%;
+      }
+    }
+  `],
 })
 export class PublicFormComponent implements OnInit {
   route = inject(ActivatedRoute);

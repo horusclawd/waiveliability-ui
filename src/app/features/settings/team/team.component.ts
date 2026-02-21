@@ -9,9 +9,11 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
+import { SkeletonModule } from 'primeng/skeleton';
 import { MessageService } from 'primeng/api';
 import { TeamService, TeamMember, TeamInvite } from './team.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { EmptyStateComponent } from '../../../core/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-settings-team',
@@ -28,6 +30,8 @@ import { AuthService } from '../../../core/auth/auth.service';
     TagModule,
     DialogModule,
     ToastModule,
+    SkeletonModule,
+    EmptyStateComponent,
   ],
   providers: [MessageService],
   template: `
@@ -41,18 +45,46 @@ import { AuthService } from '../../../core/auth/auth.service';
             label="Invite Member"
             icon="pi pi-user-plus"
             (onClick)="showInviteDialog = true"
+            ariaLabel="Invite new team member"
           />
         }
       </div>
 
       <!-- Team Members Table -->
       <p-card header="Team Members" class="mb-4">
-        <p-table
-          [value]="members()"
-          [loading]="loadingMembers()"
-          [tableStyle]="{ 'min-width': '50rem' }"
-          styleClass="p-datatable-striped"
-        >
+        @if (loadingMembers()) {
+          <p-table [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Joined</th>
+                @if (isAdmin()) {
+                  <th style="width: 8rem">Actions</th>
+                }
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body">
+              @for (i of [1, 2, 3, 4]; track i) {
+                <tr>
+                  <td><p-skeleton width="10rem" /></td>
+                  <td><p-skeleton width="14rem" /></td>
+                  <td><p-skeleton width="5rem" /></td>
+                  <td><p-skeleton width="6rem" /></td>
+                  @if (isAdmin()) {
+                    <td><p-skeleton width="4rem" /></td>
+                  }
+                </tr>
+              }
+            </ng-template>
+          </p-table>
+        } @else {
+          <p-table
+            [value]="members()"
+            [tableStyle]="{ 'min-width': '50rem' }"
+            styleClass="p-datatable-striped"
+          >
           <ng-template pTemplate="header">
             <tr>
               <th>Name</th>
@@ -102,16 +134,25 @@ import { AuthService } from '../../../core/auth/auth.service';
           </ng-template>
           <ng-template pTemplate="emptymessage">
             <tr>
-              <td colspan="5" class="text-center text-color-secondary">
-                No team members found.
+              <td colspan="5">
+                <app-empty-state
+                  icon="users"
+                  title="No team members"
+                  message="Invite team members to collaborate on your forms."
+                  actionLabel="Invite Member"
+                  actionIcon="pi pi-user-plus"
+                  [actionCallback]="() => showInviteDialog = true"
+                />
               </td>
             </tr>
           </ng-template>
         </p-table>
+        }
       </p-card>
 
       <!-- Pending Invites -->
-      @if (isAdmin() && invites().length > 0) {
+      @if (isAdmin() && !loadingMembers()) {
+        @if (invites().length > 0) {
         <p-card header="Pending Invites">
           <p-table
             [value]="invites()"
@@ -249,7 +290,7 @@ export class TeamComponent implements OnInit {
   members = this.teamService.members;
   invites = this.teamService.invites;
 
-  loadingMembers = signal(false);
+  loadingMembers = signal(true);
   sendingInvite = signal(false);
   removingMember = signal(false);
 

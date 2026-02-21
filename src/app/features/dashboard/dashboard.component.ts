@@ -5,6 +5,7 @@ import { CardModule } from 'primeng/card';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
 import { NgxEchartsModule } from 'ngx-echarts';
 import { EChartsOption } from 'echarts';
 
@@ -22,6 +23,7 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
     TableModule,
     TagModule,
     ProgressSpinnerModule,
+    SkeletonModule,
     NgxEchartsModule,
   ],
   template: `
@@ -29,9 +31,54 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
       <h2 class="mt-0 mb-4 text-xl font-semibold">Dashboard</h2>
 
       @if (loading()) {
-        <div class="flex justify-content-center p-6">
-          <p-progressSpinner strokeWidth="4" style="width: 48px; height: 48px" />
+        <!-- Skeleton Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <p-card styleClass="stat-card">
+              <div class="flex align-items-center gap-3">
+                <p-skeleton shape="circle" size="3rem" />
+                <div class="flex flex-column gap-1">
+                  <p-skeleton width="6rem" styleClass="mb-2" />
+                  <p-skeleton width="4rem" />
+                </div>
+              </div>
+            </p-card>
+          }
         </div>
+
+        <!-- Skeleton Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <p-card header="Submissions (Last 30 Days)">
+            <p-skeleton width="100%" height="300px" />
+          </p-card>
+          <p-card header="Submissions by Status">
+            <p-skeleton width="100%" height="300px" />
+          </p-card>
+        </div>
+
+        <!-- Skeleton Table -->
+        <p-card header="Recent Submissions">
+          <p-table styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Submitter</th>
+                <th>Form</th>
+                <th>Status</th>
+                <th>Submitted</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body">
+              @for (i of [1, 2, 3, 4, 5]; track i) {
+                <tr>
+                  <td><p-skeleton width="10rem" /></td>
+                  <td><p-skeleton width="8rem" /></td>
+                  <td><p-skeleton width="5rem" /></td>
+                  <td><p-skeleton width="8rem" /></td>
+                </tr>
+              }
+            </ng-template>
+          </p-table>
+        </p-card>
       } @else if (error()) {
         <p-card>
           <div class="text-center p-4">
