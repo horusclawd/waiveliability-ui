@@ -170,7 +170,7 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
 
             <!-- SSL Status -->
             @if (domain()!.sslStatus) {
-              <>
+              <ng-container>
                 <p-divider />
                 <div class="flex flex-column gap-2">
                   <h4 class="mt-0">SSL Certificate</h4>
@@ -186,12 +186,12 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
                     }
                   </div>
                 </div>
-              </>
+              </ng-container>
             }
 
             <!-- Active domain info -->
             @if (domain()!.status === 'active') {
-              <>
+              <ng-container>
                 <p-divider />
                 <div class="surface-50 p-4 border-round">
                   <h4 class="mt-0 mb-2">Your forms are live!</h4>
@@ -202,7 +202,7 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
                     </a>
                   </p>
                 </div>
-              </>
+              </ng-container>
             }
           </div>
         </p-card>

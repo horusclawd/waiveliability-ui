@@ -155,7 +155,7 @@ interface StatusOption {
           message="Submissions will appear here once users submit your forms."
           actionLabel="Go to Forms"
           actionIcon="pi pi-file-edit"
-          actionCallback={() => router.navigate(['/admin/forms'])"
+          [actionCallback]="goToForms"
         />
       } @else {
         <p-table
@@ -317,6 +317,10 @@ export class SubmissionListComponent implements OnInit {
   }
 
   // Keep selectedSubmissions signal in sync with p-table selection
+
+  goToForms() {
+    this.router.navigate(['/admin/forms']);
+  }
 
   viewSubmission(sub: Submission) {
     this.router.navigate(['/admin/submissions', sub.id]);

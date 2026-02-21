@@ -141,7 +141,7 @@ import { EmptyStateComponent } from '../../../core/components/empty-state/empty-
                   message="Invite team members to collaborate on your forms."
                   actionLabel="Invite Member"
                   actionIcon="pi pi-user-plus"
-                  [actionCallback]="() => showInviteDialog = true"
+                  [actionCallback]="openInviteDialog"
                 />
               </td>
             </tr>
@@ -194,6 +194,7 @@ import { EmptyStateComponent } from '../../../core/components/empty-state/empty-
             </ng-template>
           </p-table>
         </p-card>
+        }
       }
 
       <!-- Invite Dialog -->
@@ -297,6 +298,10 @@ export class TeamComponent implements OnInit {
   showInviteDialog = false;
   showRemoveDialog = false;
   memberToRemove = signal<TeamMember | null>(null);
+
+  openInviteDialog() {
+    this.showInviteDialog = true;
+  }
 
   roleOptions = [
     { label: 'Admin', value: 'admin' as const },

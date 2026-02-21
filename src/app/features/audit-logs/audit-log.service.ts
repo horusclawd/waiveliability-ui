@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 export interface AuditLog {
   id: string;
@@ -21,6 +21,7 @@ export interface AuditLogFilters {
   action?: string;
   entityType?: string;
   userId?: string;
+  userName?: string;
   startDate?: string;
   endDate?: string;
   page?: number;

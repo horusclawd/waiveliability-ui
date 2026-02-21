@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
+import { CardModule } from 'primeng/card';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
@@ -32,6 +33,7 @@ import { EmptyStateComponent } from '../../../core/components/empty-state/empty-
     TableModule,
     ButtonModule,
     TagModule,
+    CardModule,
     DialogModule,
     InputTextModule,
     TextareaModule,
