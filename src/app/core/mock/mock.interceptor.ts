@@ -26,53 +26,90 @@ const SEED_FORM_2_FIELDS: FormField[] = [
   { id: 'f002-f2', fieldType: 'checkbox', label: 'I agree to the terms', placeholder: null,  required: true,  fieldOrder: 1, options: null, content: null },
 ];
 
-let mockForms: FormSummary[] = [
-  {
-    id: 'form-001',
-    name: 'Customer Waiver',
-    description: 'Standard customer waiver form',
-    status: 'published',
-    fieldCount: 4,
-    createdAt: '2026-01-10T10:00:00Z',
-    updatedAt: '2026-01-15T12:00:00Z',
-  },
-  {
-    id: 'form-002',
-    name: 'Liability Release',
-    description: null,
-    status: 'draft',
-    fieldCount: 2,
-    createdAt: '2026-02-01T09:00:00Z',
-    updatedAt: '2026-02-01T09:00:00Z',
-  },
-];
+const STORAGE_KEY_FORMS = 'mock_forms';
+const STORAGE_KEY_FORM_DETAILS = 'mock_form_details';
 
-const mockFormDetails = new Map<string, Form>([
-  [
-    'form-001',
+// Load from localStorage or use defaults
+function loadMockData() {
+  try {
+    const storedForms = localStorage.getItem(STORAGE_KEY_FORMS);
+    const storedDetails = localStorage.getItem(STORAGE_KEY_FORM_DETAILS);
+
+    if (storedForms && storedDetails) {
+      const forms = JSON.parse(storedForms);
+      const detailsMap = new Map<string, Form>(JSON.parse(storedDetails));
+      return { forms, detailsMap };
+    }
+  } catch (e) {
+    console.warn('[MOCK] Failed to load from localStorage:', e);
+  }
+
+  // Default seed data
+  const defaultForms: FormSummary[] = [
     {
       id: 'form-001',
       name: 'Customer Waiver',
       description: 'Standard customer waiver form',
       status: 'published',
-      fields: SEED_FORM_1_FIELDS,
+      fieldCount: 4,
       createdAt: '2026-01-10T10:00:00Z',
       updatedAt: '2026-01-15T12:00:00Z',
     },
-  ],
-  [
-    'form-002',
     {
       id: 'form-002',
       name: 'Liability Release',
       description: null,
       status: 'draft',
-      fields: SEED_FORM_2_FIELDS,
+      fieldCount: 2,
       createdAt: '2026-02-01T09:00:00Z',
       updatedAt: '2026-02-01T09:00:00Z',
     },
-  ],
-]);
+  ];
+
+  const defaultDetails = new Map<string, Form>([
+    [
+      'form-001',
+      {
+        id: 'form-001',
+        name: 'Customer Waiver',
+        description: 'Standard customer waiver form',
+        status: 'published',
+        fields: SEED_FORM_1_FIELDS,
+        createdAt: '2026-01-10T10:00:00Z',
+        updatedAt: '2026-01-15T12:00:00Z',
+      },
+    ],
+    [
+      'form-002',
+      {
+        id: 'form-002',
+        name: 'Liability Release',
+        description: null,
+        status: 'draft',
+        fields: SEED_FORM_2_FIELDS,
+        createdAt: '2026-02-01T09:00:00Z',
+        updatedAt: '2026-02-01T09:00:00Z',
+      },
+    ],
+  ]);
+
+  return { forms: defaultForms, detailsMap: defaultDetails };
+}
+
+// Persist to localStorage
+function saveMockData(forms: FormSummary[], detailsMap: Map<string, Form>) {
+  try {
+    localStorage.setItem(STORAGE_KEY_FORMS, JSON.stringify(forms));
+    localStorage.setItem(STORAGE_KEY_FORM_DETAILS, JSON.stringify([...detailsMap]));
+  } catch (e) {
+    console.warn('[MOCK] Failed to save to localStorage:', e);
+  }
+}
+
+// Initialize mock data
+const { forms: initialForms, detailsMap: initialDetails } = loadMockData();
+let mockForms: FormSummary[] = initialForms;
+let mockFormDetails: Map<string, Form> = initialDetails;
 
 // ─── End forms mock data ──────────────────────────────────────────────────────
 
@@ -488,6 +525,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     };
     mockForms = [...mockForms, newSummary];
     mockFormDetails.set(newId, newForm);
+    saveMockData(mockForms, mockFormDetails);
     return respond(newForm, 201);
   }
 
@@ -588,6 +626,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     };
     mockForms = [...mockForms, copySummary];
     mockFormDetails.set(newId, copy);
+    saveMockData(mockForms, mockFormDetails);
     return respond(copy, 201);
   }
 
@@ -632,6 +671,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     };
     mockForms = [...mockForms, newSummary];
     mockFormDetails.set(newId, newForm);
+    saveMockData(mockForms, mockFormDetails);
     return respond(newForm, 201);
   }
 
@@ -644,6 +684,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     const updated: Form = { ...form, status: 'published', updatedAt: nowIso() };
     mockFormDetails.set(id, updated);
     mockForms = mockForms.map((f) => (f.id === id ? { ...f, status: 'published', updatedAt: updated.updatedAt } : f));
+    saveMockData(mockForms, mockFormDetails);
     return respond(updated);
   }
 
@@ -656,6 +697,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     const updated: Form = { ...form, status: 'draft', updatedAt: nowIso() };
     mockFormDetails.set(id, updated);
     mockForms = mockForms.map((f) => (f.id === id ? { ...f, status: 'draft', updatedAt: updated.updatedAt } : f));
+    saveMockData(mockForms, mockFormDetails);
     return respond(updated);
   }
 
@@ -686,11 +728,16 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
       updatedAt: now,
     };
     mockFormDetails.set(id, updated);
+    // Verify the update
+    const verify = mockFormDetails.get(id);
+    console.log('[DEBUG] After PUT, form now has:', verify?.fields?.length, 'fields');
     mockForms = mockForms.map((f) =>
       f.id === id
         ? { ...f, name: updated.name, description: updated.description, fieldCount: updated.fields.length, updatedAt: now }
         : f
     );
+    // Persist to localStorage
+    saveMockData(mockForms, mockFormDetails);
     return respond({ ...updated, fields: [...updated.fields] });
   }
 
@@ -700,6 +747,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
     const id = url.split('/admin/forms/')[1];
     mockForms = mockForms.filter((f) => f.id !== id);
     mockFormDetails.delete(id);
+    saveMockData(mockForms, mockFormDetails);
     return respond(null, 204);
   }
 
