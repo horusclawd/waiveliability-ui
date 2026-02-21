@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -338,39 +339,35 @@ export class SubmissionListComponent implements OnInit {
     if (!this.bulkStatus || this.selectedRows.length === 0) return;
     this.bulkUpdating.set(true);
 
-    let completed = 0;
-    const total = this.selectedRows.length;
     const targetStatus = this.bulkStatus;
+    const total = this.selectedRows.length;
 
-    for (const sub of this.selectedRows) {
-      this.submissionService.updateStatus(sub.id, targetStatus).subscribe({
-        next: () => {
-          completed++;
-          if (completed === total) {
-            this.bulkUpdating.set(false);
-            this.bulkDialogVisible = false;
-            this.selectedRows = [];
-            this.messageService.add({
-              severity: 'success',
-              summary: 'Bulk Update',
-              detail: `${total} submission(s) updated to ${targetStatus}.`,
-            });
-          }
-        },
-        error: () => {
-          completed++;
-          if (completed === total) {
-            this.bulkUpdating.set(false);
-            this.bulkDialogVisible = false;
-            this.messageService.add({
-              severity: 'warn',
-              summary: 'Partial Update',
-              detail: 'Some submissions could not be updated.',
-            });
-          }
-        },
-      });
-    }
+    // Use forkJoin to wait for all requests to complete
+    const requests = this.selectedRows.map(sub =>
+      this.submissionService.updateStatus(sub.id, targetStatus)
+    );
+
+    forkJoin(requests).subscribe({
+      next: () => {
+        this.bulkUpdating.set(false);
+        this.bulkDialogVisible = false;
+        this.selectedRows = [];
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Bulk Update',
+          detail: `${total} submission(s) updated to ${targetStatus}.`,
+        });
+      },
+      error: () => {
+        this.bulkUpdating.set(false);
+        this.bulkDialogVisible = false;
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Partial Update',
+          detail: 'Some submissions could not be updated.',
+        });
+      },
+    });
   }
 
   downloadCsv() {
@@ -378,13 +375,22 @@ export class SubmissionListComponent implements OnInit {
     if (this.filterStatus) params.status = this.filterStatus;
     if (this.filterName.trim()) params.submitterName = this.filterName.trim();
 
-    this.submissionService.exportCsv(params).subscribe(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'submissions.csv';
-      a.click();
-      URL.revokeObjectURL(url);
+    this.submissionService.exportCsv(params).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'submissions.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Export Failed',
+          detail: 'Failed to export CSV. Please try again.',
+        });
+      },
     });
   }
 

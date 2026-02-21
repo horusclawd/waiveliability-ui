@@ -186,9 +186,19 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
     this.pollSub = interval(3000).pipe(
       takeWhile(() => this.pollCount < this.MAX_POLLS && !this.submission()?.pdfUrl),
       switchMap(() => { this.pollCount++; return this.submissionService.getSubmission(id); })
-    ).subscribe(s => {
-      this.submission.set(s);
-      if (s.pdfUrl) this.pollSub?.unsubscribe();
+    ).subscribe({
+      next: s => {
+        this.submission.set(s);
+        if (s.pdfUrl) this.pollSub?.unsubscribe();
+      },
+      error: () => {
+        this.pollSub?.unsubscribe();
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to check PDF status. Please refresh.',
+        });
+      },
     });
   }
 
