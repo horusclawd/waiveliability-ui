@@ -13,6 +13,7 @@ import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { paymentRequiredInterceptor } from './core/interceptors/payment-required.interceptor';
 import { mockInterceptor } from './core/mock/mock.interceptor';
 import { AuthService } from './core/auth/auth.service';
 import { environment } from '../environments/environment';
@@ -29,8 +30,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(
       withInterceptors(
         environment.mock
-          ? [mockInterceptor, authInterceptor]
-          : [authInterceptor]
+          ? [mockInterceptor, authInterceptor, paymentRequiredInterceptor]
+          : [authInterceptor, paymentRequiredInterceptor]
       )
     ),
     provideAnimationsAsync(),
