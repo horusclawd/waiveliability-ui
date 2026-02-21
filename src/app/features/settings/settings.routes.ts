@@ -26,7 +26,7 @@ export const settingsRoutes: Routes = [
   {
     path: 'domain',
     loadComponent: () =>
-      import('./domain/domain.component').then((m) => m.DomainComponent),
+      import('./custom-domain/custom-domain.component').then((m) => m.CustomDomainComponent),
   },
   {
     path: 'notifications',

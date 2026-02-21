@@ -13,6 +13,7 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToolbarModule } from 'primeng/toolbar';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { SkeletonModule } from 'primeng/skeleton';
 import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
@@ -20,6 +21,7 @@ import { FormService } from '../form.service';
 import { FormSummary } from '../form.model';
 import { TenantService } from '../../../core/tenant/tenant.service';
 import { ImportDialogComponent } from '../import-dialog/import-dialog.component';
+import { EmptyStateComponent } from '../../../core/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-form-list',
@@ -37,8 +39,10 @@ import { ImportDialogComponent } from '../import-dialog/import-dialog.component'
     ConfirmDialogModule,
     ToolbarModule,
     ProgressSpinnerModule,
+    SkeletonModule,
     TooltipModule,
     ImportDialogComponent,
+    EmptyStateComponent,
   ],
   providers: [MessageService, ConfirmationService],
   template: `
@@ -58,20 +62,44 @@ import { ImportDialogComponent } from '../import-dialog/import-dialog.component'
             severity="secondary"
             class="mr-2"
             (onClick)="importDialogVisible = true"
+            ariaLabel="Import form"
           />
           <p-button
             label="New Form"
             icon="pi pi-plus"
             (onClick)="openCreateDialog()"
+            ariaLabel="Create new form"
           />
         </ng-template>
       </p-toolbar>
 
-      <!-- Loading spinner -->
+      <!-- Loading skeleton -->
       @if (loading()) {
-        <div class="flex justify-content-center align-items-center" style="min-height: 200px">
-          <p-progressSpinner strokeWidth="4" style="width: 48px; height: 48px" />
-        </div>
+        <p-card styleClass="mb-4">
+          <p-skeleton width="100%" height="40px" styleClass="mb-3" />
+          <p-table styleClass="p-datatable-sm">
+            <ng-template pTemplate="header">
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Fields</th>
+                <th>Updated</th>
+                <th style="width: 10rem">Actions</th>
+              </tr>
+            </ng-template>
+            <ng-template pTemplate="body">
+              @for (i of [1, 2, 3, 4, 5]; track i) {
+                <tr>
+                  <td><p-skeleton width="12rem" /><br /><p-skeleton width="8rem" styleClass="mt-1" /></td>
+                  <td><p-skeleton width="5rem" /></td>
+                  <td><p-skeleton width="3rem" /></td>
+                  <td><p-skeleton width="6rem" /></td>
+                  <td><p-skeleton width="8rem" /></td>
+                </tr>
+              }
+            </ng-template>
+          </p-table>
+        </p-card>
       }
 
       <!-- Table -->
@@ -87,8 +115,15 @@ import { ImportDialogComponent } from '../import-dialog/import-dialog.component'
         >
           <ng-template #empty>
             <tr>
-              <td colspan="5" class="text-center p-5 text-color-secondary">
-                No forms yet. Click <strong>New Form</strong> to create your first form.
+              <td colspan="5">
+                <app-empty-state
+                  icon="file"
+                  title="No forms yet"
+                  message="Create your first form to start collecting submissions."
+                  actionLabel="New Form"
+                  actionIcon="pi pi-plus"
+                  [actionCallback]="openCreateDialog.bind(this)"
+                />
               </td>
             </tr>
           </ng-template>

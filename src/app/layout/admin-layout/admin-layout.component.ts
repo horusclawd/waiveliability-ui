@@ -46,6 +46,7 @@ export class AdminLayoutComponent {
     { label: 'Submissions', icon: 'pi pi-inbox',     routerLink: '/admin/submissions' },
     { label: 'Templates', icon: 'pi pi-th-large',    routerLink: '/admin/templates'   },
     { label: 'Analytics', icon: 'pi pi-chart-line',  routerLink: '/admin/analytics'   },
+    { label: 'Audit Logs', icon: 'pi pi-history',    routerLink: '/admin/audit-logs' },
   ];
 
   bottomNavItems = [
@@ -53,6 +54,7 @@ export class AdminLayoutComponent {
     { label: 'Settings', icon: 'pi pi-cog',          routerLink: '/admin/settings' },
     { label: 'Notifications', icon: 'pi pi-bell',   routerLink: '/admin/settings/notifications' },
     { label: 'Team', icon: 'pi pi-users',           routerLink: '/admin/settings/team' },
+    { label: 'Custom Domain', icon: 'pi pi-globe', routerLink: '/admin/settings/domain' },
   ];
 
   isAdmin = computed(() => this.user()?.role === 'admin');

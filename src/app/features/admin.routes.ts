@@ -50,6 +50,13 @@ export const adminRoutes: Routes = [
           ),
       },
       {
+        path: 'audit-logs',
+        loadComponent: () =>
+          import('./audit-logs/audit-logs.component').then(
+            (m) => m.AuditLogsComponent
+          ),
+      },
+      {
         path: 'billing',
         loadComponent: () =>
           import('./billing/billing.component').then(
