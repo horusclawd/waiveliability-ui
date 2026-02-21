@@ -18,6 +18,7 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { FormService } from '../form.service';
 import { FormSummary } from '../form.model';
+import { TenantService } from '../../../core/tenant/tenant.service';
 
 @Component({
   selector: 'app-form-list',
@@ -127,6 +128,16 @@ import { FormSummary } from '../form.model';
                     pTooltip="Duplicate"
                     (onClick)="duplicateForm(form)"
                   />
+                  @if (form.status === 'published') {
+                    <p-button
+                      icon="pi pi-link"
+                      [rounded]="true"
+                      [text]="true"
+                      severity="secondary"
+                      pTooltip="Copy Public Link"
+                      (onClick)="copyPublicLink(form)"
+                    />
+                  }
                   <p-button
                     icon="pi pi-trash"
                     [rounded]="true"
@@ -198,6 +209,7 @@ export class FormListComponent implements OnInit {
 
   constructor(
     public formService: FormService,
+    private tenantService: TenantService,
     private router: Router,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
@@ -226,6 +238,21 @@ export class FormListComponent implements OnInit {
       error: () => {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to duplicate form.' });
       },
+    });
+  }
+
+  copyPublicLink(form: FormSummary) {
+    const tenantSlug = this.tenantService.tenant()?.slug;
+    if (!tenantSlug) {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Tenant slug not found.' });
+      return;
+    }
+
+    const publicUrl = `${window.location.origin}/public/${tenantSlug}/forms/${form.id}`;
+    navigator.clipboard.writeText(publicUrl).then(() => {
+      this.messageService.add({ severity: 'success', summary: 'Copied', detail: 'Public link copied to clipboard!' });
+    }).catch(() => {
+      this.messageService.add({ severity: 'error', summary: 'Error', detail: 'Failed to copy link.' });
     });
   }
 
