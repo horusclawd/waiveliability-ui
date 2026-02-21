@@ -159,13 +159,11 @@ export class SubmissionDetailComponent implements OnInit, OnDestroy {
 
   private startPolling(id: string) {
     this.pollSub = interval(3000).pipe(
-      takeWhile(() => this.pollCount < this.MAX_POLLS && !this.submission()?.pdfUrl)
-    ).subscribe(() => {
-      this.pollCount++;
-      this.submissionService.getSubmission(id).subscribe(s => {
-        this.submission.set(s);
-        if (s.pdfUrl) this.pollSub?.unsubscribe();
-      });
+      takeWhile(() => this.pollCount < this.MAX_POLLS && !this.submission()?.pdfUrl),
+      switchMap(() => { this.pollCount++; return this.submissionService.getSubmission(id); })
+    ).subscribe(s => {
+      this.submission.set(s);
+      if (s.pdfUrl) this.pollSub?.unsubscribe();
     });
   }
 
