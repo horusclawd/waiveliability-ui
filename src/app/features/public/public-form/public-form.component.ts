@@ -291,14 +291,16 @@ export class PublicFormComponent implements OnInit {
 
     const answers = this.answers();
     this.http
-      .post(
+      .post<{ id: string }>(
         `${environment.apiBaseUrl}/public/${this.tenantSlug()}/forms/${this.formId()}/submit`,
         { answers, signatureData: this.signatureData() }
       )
       .subscribe({
-        next: () => {
+        next: (response) => {
           this.submitting.set(false);
-          this.router.navigate(['/public', this.tenantSlug(), 'forms', this.formId(), 'confirmation']);
+          this.router.navigate(['/public', this.tenantSlug(), 'forms', this.formId(), 'confirmation'], {
+            queryParams: { submissionId: response.id },
+          });
         },
         error: (err) => {
           this.submitting.set(false);
