@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { CardModule } from 'primeng/card';
 import { ButtonModule } from 'primeng/button';
@@ -17,7 +17,6 @@ type TagSeverity = 'warn' | 'success' | 'secondary' | 'info' | 'danger' | 'contr
   standalone: true,
   imports: [
     CommonModule,
-    RouterModule,
     CardModule,
     ButtonModule,
     TagModule,
@@ -125,15 +124,13 @@ export class SubmissionDetailComponent implements OnInit {
     });
   }
 
-  get answers(): () => { key: string; value: string }[] {
-    return () => {
-      const s = this.submission();
-      if (!s) return [];
-      return Object.entries(s.formData).map(([key, val]) => ({
-        key,
-        value: typeof val === 'boolean' ? (val ? 'Yes' : 'No') : String(val),
-      }));
-    };
+  answers(): { key: string; value: string }[] {
+    const s = this.submission();
+    if (!s) return [];
+    return Object.entries(s.formData).map(([key, val]) => ({
+      key,
+      value: typeof val === 'boolean' ? (val ? 'Yes' : 'No') : String(val),
+    }));
   }
 
   statusSeverity(status: Submission['status']): TagSeverity {
