@@ -179,7 +179,6 @@ interface PublicBranding {
                   }
                 </div>
               </ng-container>
-            }
             </div>
 
             <p-divider />
