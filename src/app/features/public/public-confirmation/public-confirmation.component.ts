@@ -7,7 +7,7 @@ import { CardModule } from 'primeng/card';
   imports: [CardModule],
   template: `
     <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--surface-ground)">
-      <p-card styleClass="text-center" style="width: 100%; max-width: 480px">
+      <p-card styleClass="w-full text-center" [style]="{ 'max-width': '480px' }">
         <div class="flex flex-column align-items-center gap-3 p-4">
           <i class="pi pi-check-circle text-green-500" style="font-size: 4rem"></i>
           <h2 class="m-0">Thank You!</h2>

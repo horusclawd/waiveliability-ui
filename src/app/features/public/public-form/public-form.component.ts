@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, signal, inject, computed, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,7 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DropdownModule } from 'primeng/dropdown';
+import { SelectModule } from 'primeng/select';
 import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -14,6 +14,7 @@ import { CardModule } from 'primeng/card';
 import { DividerModule } from 'primeng/divider';
 import { environment } from '../../../../environments/environment';
 import { Form, FormField } from '../../forms/form.model';
+import { SignaturePadComponent } from './signature-pad/signature-pad.component';
 
 interface PublicBranding {
   tenantName: string;
@@ -33,12 +34,13 @@ interface PublicBranding {
     InputTextModule,
     TextareaModule,
     CheckboxModule,
-    DropdownModule,
+    SelectModule,
     ButtonModule,
     MessageModule,
     ProgressSpinnerModule,
     CardModule,
     DividerModule,
+    SignaturePadComponent,
   ],
   template: `
     <div style="min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; background: var(--surface-ground)">
@@ -95,15 +97,9 @@ interface PublicBranding {
 
                   <!-- Signature field -->
                   @if (isSignatureField(field)) {
-                    <input
-                      [id]="field.id"
-                      pInputText
-                      [ngModel]="answers()[field.id] ?? ''"
-                      (ngModelChange)="setAnswer(field.id, $event)"
-                      [placeholder]="field.placeholder || 'Type your full name as your signature'"
-                      style="width: 100%; font-family: cursive; font-size: 1.1rem"
+                    <app-signature-pad
+                      (signatureChange)="onSignatureChange(field.id, $event)"
                     />
-                    <small class="text-color-secondary">Type your full name as your signature</small>
                   }
 
                   <!-- Text field -->
@@ -159,7 +155,7 @@ interface PublicBranding {
 
                   <!-- Select field -->
                   @else if (field.fieldType === 'select') {
-                    <p-dropdown
+                    <p-select
                       [inputId]="field.id"
                       [options]="field.options || []"
                       optionLabel="label"
@@ -218,6 +214,7 @@ export class PublicFormComponent implements OnInit {
   form = signal<Form | null>(null);
   branding = signal<PublicBranding | null>(null);
   answers = signal<Record<string, unknown>>({});
+  signatureData = signal<string | null>(null);
   loading = signal(true);
   submitting = signal(false);
   errors = signal<Record<string, string>>({});
@@ -277,6 +274,15 @@ export class PublicFormComponent implements OnInit {
     this.answers.update(a => ({ ...a, [fieldId]: value }));
   }
 
+  onSignatureChange(fieldId: string, signatureDataUrl: string) {
+    if (signatureDataUrl) {
+      // Store the signature data URL as the field value
+      this.setAnswer(fieldId, signatureDataUrl);
+      // Also store separately for API submission
+      this.signatureData.set(signatureDataUrl);
+    }
+  }
+
   onSubmit() {
     if (!this.validate()) return;
 
@@ -287,7 +293,7 @@ export class PublicFormComponent implements OnInit {
     this.http
       .post(
         `${environment.apiBaseUrl}/public/${this.tenantSlug()}/forms/${this.formId()}/submit`,
-        { answers }
+        { answers, signatureData: this.signatureData() }
       )
       .subscribe({
         next: () => {
@@ -311,7 +317,13 @@ export class PublicFormComponent implements OnInit {
       if (!field.required) continue;
 
       const val = answers[field.id];
-      if (field.fieldType === 'checkbox') {
+
+      // Signature fields require a non-empty value (data URL)
+      if (this.isSignatureField(field)) {
+        if (!val || String(val).trim() === '') {
+          newErrors[field.id] = 'Signature is required';
+        }
+      } else if (field.fieldType === 'checkbox') {
         if (!val) newErrors[field.id] = 'This field is required';
       } else {
         if (!val || String(val).trim() === '') {
