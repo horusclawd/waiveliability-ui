@@ -351,6 +351,7 @@ export const mockInterceptor: HttpInterceptorFn = (req, next) => {
       submitterEmail: null,
       formData: body.answers ?? {},
       signatureUrl: null,
+      pdfUrl: 'https://placehold.co/800x1100?text=Submission+PDF',
       status: 'pending',
       submittedAt: now,
     };
